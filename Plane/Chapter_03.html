@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 3 - Plane (part 1)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src="../libs/WebGeometry.js"></script>
+	<script src="../libs/canvas2D.js"></script>
+	<script src="lines.js"></script>
+	<script src="circle_line.js"></script>
+	<script src="two_circles.js"></script>
+	<script src="three_circles.js"></script>
+	<script src="pentagon.js"></script>
+	<script src="hexagon.js"></script>
+	<script src="heptagon.js"></script>
+
+	<style>
+		div.out
+		{
+			position: relative;
+			width: 670px;
+			height: 312px;
+			left: 5px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+	
+		div.in
+		{
+			position: absolute;
+			left: 405px;
+			top: 5px;			
+			height: 300px;
+			width: 255px;
+			background-color: #eeeeee;
+			border: solid 1px;
+		}
+
+		div.canvas
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 300px;
+			width: 400px;
+			background-color: #fcffff;
+			border: solid 0px;		
+		}
+		
+		div.gui
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;
+		}	
+	</style>
+
+<script>
+
+	var DEGREE = 0.01745329251994;
+	var xC, yC, SCALE;
+		
+	function initiate()		
+	{
+		lines();
+		circle_line();
+		two_circles();
+		three_circles();
+		pentagon();
+		hexagon();
+		heptagon();
+	}
+	
+addEventListener("load", initiate);
+</script>
+
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../Pyramid/Chapter_02.html"> <span class=brown>Глава 2 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span></a><a href="Chapter_04.html"> <span class=brown> Глава 4  </span></a>
+</h3>
+<br>
+<h2 align = "center"> 
+<span class=brown>Three.js и геометрия.</span> &emsp; 
+Глава 3 &emsp;  Библиотека WebGeometry и холст HTML5 (часть 1)</h2>
+
+<p>
+Перейдем к рассмотрению библиотеки <b>WebGeometry</b> используемой для рачета координат вершин <b>3D</b> моделей. 
+Oписание всех входящих в нее функций можно найти <a href="../libs/Help.html" target="_blank"> <b>здесь</b></a>. 
+Библиотека включает в себя <b>Javascript</b> функциии для работы с <b>2D</b> и <b>3D</b> объектами. 
+В основном для построения моделей используются трехмерные объекты библиотеки - <b>3D</b>-точки, <b>3D</b>-вектора,
+прямые в пространстве и плоскости. Но иногда требуются и чисто двумерные объекты - <b>2D</b>-точки, <b>2D</b>-вектора, 
+прямые на плоскости и окружности.
+В библиотеке <b>2D</b> и <b>3D</b> объекты четко разделены. Отдельно присутствут функции для построений 
+на плоскости и отдельно для построений в пространстве. Кроме того в библиотеке большую роль играют 
+функции для работы  с матрицами. Для <b>2D</b> и <b>3D</b> матриц также присутствуют функции 
+для обеих размерностей по отдельности. Но функции с матрицами нам практически никогда
+не понадобятся, хотя они играют очень важную роль в библиотеке <b>WebGeometry</b>. На их основе 
+построены функции работающие с точками, прямыми и плоскостями, которые нам требуются в дальнейшем 
+для построения многогранников.
+<br> 
+&emsp; Начнем с рассмотрения функций библиотеки предназначенных 
+для работы с <b>2D</b> объектами. В данном разделе мы рассмотрим на примерах как можно использовать
+функции библиотеки <b>WebGeometry</b> применительно к построениям на плоскости.
+</p>
+
+</p>
+<h3 align = "center"> Точка на холсте</h3>
+<p>
+В показанной ниже программе показано как можно расположить <b>2D</b>-точку на холсте. При помощи контроллера <b>dat.GUI</b> точку можно
+перемещать по холсту.
+</p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_01" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container1" ></div> 
+	</div>	
+</div>
+
+<p>
+Основная часть исходного текста программы с подробными комментариями объясняющими ее работу:
+</p>
+
+
+<pre class="prettyprint" id="quine">
+	var elem1 = document.getElementById('canvas_01');
+	var ctx1 = elem1.getContext("2d");
+	elem1.style.position = "relative";
+	elem1.style.border = "1px solid";
+
+/*
+   // Функции сопряжения координат холста с координатами используемыми в WebGeometry, WebGL и three.js
+   // Используются внутри функций csp, axes, txt_c (и других ...) для пересчета координат используемых 
+   // в WebGeometry, WebGL и three.js в координаты используемые при построениях на холсте (HTML5 canvas).
+   function fx(val)
+   {
+	  var res = val * SCALE + xC;
+	  return res;
+   }
+
+   function fy(val)
+   {
+	  var res = - val * SCALE + yC;
+	  return res;
+   }	
+*/	
+	
+	SCALE = 100;           // задает масштаб
+	xC = elem2.width / 2;  // задает положение начала координат по оси OX
+	yC = elem2.height / 2; // задает положение начала координат по оси OY
+	
+	// начало координат
+	var pt00 = new Point2D(0, 0);
+	// рисуем точку в начале координат коричневым цветом
+	csp(ctx1, pt00, 2, "Brown");
+	// обозначаем начало координат символом "O" коричневым цветом
+	text1(ctx1, "O", pt00, "rt", "up", "Brown");
+	// рисуем оси коричневым цветом с размахом линий по OX и OY равным 1.8
+	axes(ctx1, 1.8, 1.8, 0.5, "Brown");
+	
+	// canvas ctx1
+	// точка с координатами ( 1.2, -1.2)
+	var pt0 = new Point2D( 1.2, -1.2);
+	csp(ctx1, pt0, 10, "B"); // рисуем точку pt0 синим цветом
+	// формируем строку с координатами точки pt0
+	var t1 = (roundNumber(pt0[0], 2)).toString(); // преобразование значения в строку
+	var t2 = (roundNumber(pt0[1], 2)).toString(); // преобразование значения в строку
+	var t = t1 + ", " + t2;
+	// отображаем сформированную строку синим цветом 
+	// рядом с pt0 - чуть правее и чуть выше самой точки
+	text1(ctx1, t, pt0, "rt", "up", "B");
+
+	// переменная controller1 используется dat.GUI
+	var controller1 = new function() 
+	{
+		this.X = pt0[0];
+		this.Y = pt0[1];
+	}();	
+	// Создаем новый объект dat.GUI.
+	var gui = new dat.GUI({ autoPlace: false });
+	gui.domElement.id = 'gui';
+	gui_container1.appendChild(gui.domElement);
+	
+	var f1_1 = gui.addFolder('Point position');	
+	// используется для изменения координаты X точки pt0
+	f1_1.add(controller1, 'X', -2.0, 2.0).onChange( function() 
+	{
+		pt0[0] = (controller1.X); // задаем новое значение координаты X
+		// так как новое значение координаты X то требуется
+		// очистить экран
+		ctx1.clearRect(0, 0, elem1.width, elem1.height);
+		// перерисовываем экран с новым положением точки pt0
+		axes(ctx1, 1.8, 1.8, 0.5, "Brown");
+		csp(ctx1, pt0, 10, "B");
+		var t1 = (roundNumber(pt0[0], 2)).toString(); 
+		var t2 = (roundNumber(pt0[1], 2)).toString();
+		var t = t1 + ", " + t2;
+		text1(ctx1, t, pt0, "rt", "up", "B");
+		csp(ctx1, pt00, 2, "Brown");
+		text1(ctx1, "O", pt00, "rt", "up", "Brown");
+	});
+	// используется для изменения координаты Y точки pt0
+	f1_1.add(controller1, 'Y', -2.0, 2.0).onChange( function() 
+	{
+		pt0[1] = (controller1.Y); // задаем новое значение координаты Y
+		// так как новое значение координаты Y то требуется
+		// очистить экран
+		ctx1.clearRect(0, 0, elem1.width, elem1.height)
+		// перерисовываем экран с новым положением точки pt0
+		axes(ctx1, 1.8, 1.8, 0.5, "Brown");
+		csp(ctx1, pt0, 10, "B");
+		var t1 = (roundNumber(pt0[0], 2)).toString();
+		var t2 = (roundNumber(pt0[1], 2)).toString();
+		var t = t1 + ", " + t2;
+		text1(ctx1, t, pt0, "rt", "up", "B");	
+		csp(ctx1, pt00, 2, "Brown");
+		text1(ctx1, "O", pt00, "rt", "up", "Brown");		
+	});
+</pre>
+<p>
+Кроме библиотеки <b>WebGeometry</b> в дальнейшем при выводе на холст мы будем использовать 
+некоторое количество вспомогательных функций, исходный текст которых находится в файле <b>canvas2D.js</b>.
+Они представляют собой небольшую обертку вокруг стандартного API <b>HTML5 Canvas</b> и 
+позволяют вывести на экран точки, текст, прямые и окружности при помощи сокращенной записи.
+Эти функции в качестве параметров получают координаты не привязанные к холсту 
+(как в <b>HTML5 Canvas</b>), а непосредственно значения получаемые в процессе расчетов с
+помощью функций входящих в <b>WebGeomrtry</b>. Также большинство этих функций позволяют задать 
+цвет точек, текста, прямых и окружностей, размер точек и толщину линий.
+</p>
+<p>
+В приведенном выше исходном тексте использовалась только одна <a href="../libs/Help.html#Point2D"  target="_blank">функция создания 2D-точки</a> из библиотеки <b>WebGeometry</b>. 
+Она создает точку с координатами <code><b>(1.2, -1.2)</b></code>: 
+<p><code> 
+&emsp; &emsp;<code><b>var pt0 = new Point2D(1.2, -1.2);</b></code>
+</code></p>
+Исходный текст вспомогательных функций (<b>csp</b>, <b>txt_c</b> и др.), предназначенных для <em>отображения</em> на холсте
+точек, прямых и текста, можно найти (как говорилось ранее) в файле <b>canvas2D.js</b>.
+</p>
+<h3 align = "center"> Прямые на холсте</h3>
+<p>
+Создадим две прямые и отобразим их на холсте. Первая прямая задается двумя точками (точки обозначенные на холсте как <b>1</b> и <b>2</b>):
+<pre class="prettyprint" id="quine">
+   var pt1 = new Point2D ( -1.1, -0.8); // черная точка 1
+   var pt2 = new Point2D ( 1.1, 0.8);   // черная точка 2
+   var line1 = new Line2D(pt1, pt2);    // создаваемая прямая
+</pre>
+
+Вторая прямая задается своим направлением при помощи вектора, и точкой принадлежащей создаваемой прямой.
+При помощи функции <a href="../libs/Help.html#Line2D_IntersectionTwoLines"  target="_blank"><code>IntersectionTwoLines</code></a> 
+определяем точку пересечения двух прямых:
+<pre class="prettyprint" id="quine">
+   var vec = new Vector2D(0.95, -0.2); // вектор синего цвета
+   var pt3 = new Point2D ( -1.0, 0.7); // точка point синего цвета
+   var line2 = new Line2D();           // объявление прямой line2
+   // назначение прямой line2 требуемых параметров
+   line2.CreateLineVectorPoint(vec, pt3);
+   // определяем координаты точки пересечения прямых line1 и line2
+   var point = line1.IntersectionTwoLines(line2); // точка имеющая красный цвет
+</pre>
+</p>
+<p>
+При помощи <code><b>dat.GUI</b></code> можно задавать координаты точек <code><b>1</b></code> и <code><b>2</b></code> 
+через которые проходит первая прямая и кординаты вектора и точки для второй прямой.
+</p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_02" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container2" ></div> 
+	</div>	
+</div>
+
+<p>
+Возможно представляет интерес посмотреть как это все рисуется на холсте. Далее приведен текст 
+функции <b>cross</b> выполняющий вычисления и отрисовку на холсте с подробными комментариями:
+<pre class="prettyprint" id="quine">
+	function cross(pt1, pt2, pt3, vec)
+	{
+		// pt1 и pt2 задают line1
+		// pt3 и vec задают line2
+		ctx2.clearRect(0, 0, elem2.width, elem2.height);
+		ctx2.lineWidth = 1.0;
+		ctx2.font = "12px Arial";
+		axes(ctx2, 1.8);
+		
+		// Создаем вспомогательную прямую лежащую на оси OX
+		var pt00 = new Point2D(0, 0); // начало координат
+		var OX = new Line2D(pt00, new Point2D(1, 0));
+		
+		csp(ctx2, pt1, 6); // черная точка 1
+		csp(ctx2, pt2, 6); // черная точка 2
+		var line1 = new Line2D(pt1, pt2); // создаем line1
+		line(ctx2, pt2, pt1); // отображаем line1 на холсте
+		
+		// Для отрисовки вектора на экране
+		// создаем сначала прямую лежащую на векторе
+		// Переменная vec объявлена вне данной функции и изменяется в dat.GUI
+		vec.Normer();
+		var line_vec = new Line2D(pt00, vec);
+		// Отображаем вектор на холсте.
+		// Предположим, что он исходит из начала координат и идет в точку с координатами vec.
+		// В WebGeometry предполагается, что векторы являются свободными и задают только направление.
+		// Поэтому можем условно привязать вектор к любой точке - в том числе и к началу координат.
+		vector(ctx2, pt00, vec, "B"); 
+		txt_c(ctx2, "vector", vec, "rt", "up", "B"); // отображаем слово "vector"
+		// При помощи функции Angle библиотеки WebGeometry определяем угол наклона стрелки на холсте
+		var ang = (line_vec.Angle(OX) +  90*DEGREE);
+		// Затем рисуем стрелку на конце вектора
+		arrow(ctx2, vec, ang, 0.4, "B");
+		csp(ctx2, pt3, 6, "B"); // отображаем на холсте точку pt3 синим цветом
+		txt_c(ctx2, "point", pt3, "lt", "up", "B"); // отображаем на холсте слово point синим цветом
+		
+		// Создаем прямую line2
+		var line2 = new Line2D(); // объявление прямой line2
+		// назначение прямой line2 требуемых параметров
+		line2.CreateLineVectorPoint(vec, pt3);
+		
+		//  находим вспомогательную точку pt_temp для изображения на холсте line2
+		var pt_temp = line2.IntersectionTwoLines(OX);
+		//  прямая line2 проходит через точки pt3 и pt_temp
+		// отображаем line2 при помощи функции line (смотри в <b>canvas2D.js</b>)
+		line(ctx2, pt3, pt_temp, "B"); 
+		
+		txt_c(ctx2, "1", pt1, "lt", "up"); // отображаем слово "1" на холсте
+		txt_c(ctx2, "2", pt2, "lt", "up"); // отображаем слово "2" на холсте
+		
+		var point = line1.IntersectionTwoLines(line2); 
+		csp(ctx2, point, 8, "R");
+		var t1 = (roundNumber(point[0], 2)).toString();
+		var t2 = (roundNumber(point[1], 2)).toString();
+		var t = t1 + ", " + t2;
+		txt_c(ctx2, t, point, "rt", "up", "R"); // отображаем координаты точки пересечения 
+						// прямых на холсте красным цветом
+		
+		csp(ctx2, pt00, 8, "B"); // отображаем точку лежащую в начале координат (8 - размер точки в px)
+	}
+</pre>
+<p>
+В приведенном выше листинге использовались следующие функции библиотеки <b>WebGeometry</b>:<br>
+&emsp;  <a href="../libs/Help.html#Vector2D"  target="_blank"><code>Vector2D</code></a> <br>
+&emsp;  <a href="../libs/Help.html#Vector2D_Normer"  target="_blank"><code>(Vector2D) Normer</code></a> <br>
+&emsp;  <a href="../libs/Help.html#Line2D"  target="_blank"><code>Line2D</code></a> <br>
+&emsp;  <a href="../libs/Help.html#Line2D_CreateLineVectorPoint"  target="_blank"><code>(Line2D) CreateLineVectorPoint</code></a> <br>
+&emsp;  <a href="../libs/Help.html#Line2D_Angle"  target="_blank"><code>(Line2D) Angle</code></a> <br>
+&emsp;  <a href="../libs/Help.html#Line2D_IntersectionTwoLines"  target="_blank"><code>(Line2D) IntersectionTwoLines</code></a> <br>
+
+
+
+</p>
+</p>
+<h3 align = "center"> Окружность и прямая на холсте</h3>
+<p>
+В качестве типичного примера создадим окружность и прямую и затем найдем точки их пересечения.
+На холст окружность и прямую отображает следующая программа:
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_03" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container3" ></div> 
+	</div>	
+</div>
+</p>
+
+<p>
+По тексту программы можно посмотреть как используются некоторые функции библиотеки <b>WebGeometry</b> 
+для отображения на холст прямых, окружностей и т.д. В следующем листинге
+в качестве функции определяющей точки пересечения окружности и прямой используется 
+функция 
+<a href="../libs/Help.html#Circle2D_Intersection_LineCircle"  target="_blank"><code>Intersection_LineCircle</code></a>. 
+Эта функция возвращает массив из двух элементов типа <code>Point2D</code>. Эти два элемента массива представляют собой
+две точки пересечения прямой с плоскостью.
+</p>
+<pre class="prettyprint" id="quine">
+function draw_line_circle(ctx, O, pt1, pt2, R)	
+{
+	axes(ctx, 1.8, 1.8, 0.5, "Brown"); // оси координат
+	
+	csp(ctx, O, 5, "B"); // центр окружности
+	var t1 = (roundNumber(O[0], 2)).toString();
+	var t2 = (roundNumber(O[1], 2)).toString();
+	var t = t1 + ", " + t2;
+	text1(ctx, t, O, "rt", "up", "B");
+
+	circle(ctx, O, R, 1, "B");
+	
+	// радиус - прямая со стрелкой на одном конце
+	var line_radius = new Line2D(O, new Point2D(O[0] + 6, O[1] + 3));
+	var cir = new Circle2D(O, R); // Окружность с центром O и радиусом R
+	
+	// определяем место где нарисуем стрелку радиуса
+	var points = cir.Intersection_LineCircle(line_radius);
+	if (points == null)
+	{
+		return null;
+	}	
+	var x, y;
+	// в качестве места для стрелки выбираем где координата Y 
+	// точки пересесечения имеет меньшее значение
+	if (points[0][1] > points[1][1])
+	{
+		x = points[1][0];
+		y = points[1][1];
+	}
+	else
+	{
+		x = points[0][0];
+		y = points[0][1];
+	}				
+	// точка для стрелки 
+	var point_radius = new Point2D(x, y);
+
+	// радиус
+	segment_arrow(ctx, O, point_radius, 1, 0.2, "Black")
+	text1(ctx, "R", point_radius, "lt", "dn", "B");
+	
+	// прямая OX задается для определения угла используемого 
+	// для проведения отрезка со стрелкой на конце примыкающем к окружности
+	var O = new Point2D(0, 0); // начало координат
+	var OX = new Line2D(O, new Point2D(1, 0));
+	// определяем угол
+	var ang = (line_radius.Angle(OX) - 90*DEGREE);
+	// рисуем стрелку на конце отрезка
+	arrow(ctx, point_radius, ang, 0.2, "B");	
+	
+	// задаем прямую line_var пересекающуюся с окружностью
+	csp(ctx, pt1, 6);
+	csp(ctx, pt2, 6);
+	text1(ctx, "1", pt1, "rt", "up");
+	text1(ctx, "2", pt2, "rt", "up");	
+	var line_var = new Line2D(pt1, pt2); // прямая задается двумя точками
+	line(ctx, pt2, pt1, -3, 3, 1, "Black"); // отображаем line_var
+	
+	// находим две точки пересечения
+	points = cir.Intersection_LineCircle(line_var);
+	if (points == null)
+	{
+		return null;
+	}
+	csp(ctx, points[0], 6, "R"); // первая точка пересечения
+	csp(ctx, points[1], 6, "R"); // вторая точка пересечения
+	
+	// координаты первой точки
+	var t1 = (roundNumber(points[0][0], 2)).toString();
+	var t2 = (roundNumber(points[0][1], 2)).toString();
+	var t = t1 + ", " + t2;
+	text1(ctx, t, points[0], "rt", "up", "R");
+	
+	// координаты второй точки
+	t1 = (roundNumber(points[1][0], 2)).toString();
+	t2 = (roundNumber(points[1][1], 2)).toString();
+	t = t1 + ", " + t2;
+	text1(ctx, t, points[1], "rt", "up", "R");	
+}
+</pre>
+
+
+<h3 align = "center"> Две окружности на холсте</h3>
+<p>
+Создадим две окружности у которых можно менять координаты их центров и радиусы.
+Найдем точки пересечения окружностей друг с другом. Они определяются с помощью 
+функции <a href="../libs/Help.html#Circle2D_Intersection_TwoCircles"  target="_blank">
+ <code>Intersection_TwoCircles</code></a> 
+</p>
+<pre class="prettyprint" id="quine">
+	var cir1 = new Circle2D(O1, R1); // первая окружность
+	var cir2 = new Circle2D(O2, R2); // вторая окружность
+	var points = cir1.Intersection_TwoCircles(cir2);
+	if (points == null)
+	{
+	   return null; // нет пересечения окружностей
+	}	
+	// пересечение есть
+	...................
+	...................	
+</pre>
+
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_04" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container4" ></div> 
+	</div>	
+</div>
+</p>
+Исходный текст программы пересечения двух окружностей находится в файле <b>two_circles.js</b>.
+
+<h3 align = "center"> Сопряжение окружностей</h3>
+
+<img src = "figure_3_1.png" class="center-img-rounded" border = "2px" >
+
+<p>
+Иногда возникает задача плавного соединения двух окружностей.
+Рисунок <b>1</b> иллюстрирует это построение. Фактически оно сводится 
+к сопряжению окружностей <code><b>cir1</b></code> и <code><b>cir2</b></code> дугой третьей окружности <code><b>cir3</b></code>. 
+Окружность <code><b>cir3</b></code> имеет внутреннее касание к окружностям <code><b>cir1</b></code> и <code><b>cir2</b></code> 
+в точках <b>F</b> и <b>G</b>. Термин “внутреннее касание” означает, что центры дуг окружностей 
+<code><b>cir1</b></code>, <code><b>cir2</b></code> и <code><b>cir3</b></code> находятся по одну сторону от точек их касания.
+Будем считать, что заданы радиусы <code><b>R1</b></code> и <code><b>R2</b></code> основных окружностей 
+<code><b>cir1</b></code> и <code><b>cir2</b></code>, а также радиус сопрягающей окружности <code><b>R3</b></code>. 
+Предположим также, что известно расположение центров <b>O1</b> и <b>O2</b> основных окружностей. 
+Требуется найти положение центра <b>O3</b> сопрягающей окружности и координаты точек касания <b>F</b> и <b>G</b>.
+<p> 
+Для нахождения центра <b>O3</b> окружности сопряжения <code><b>cir3</b></code> построим две вспомогательные окружности с радиусами 
+равными значениям <code><b>R1 – R3</b></code> и <code><b>R2 – R3</b></code>. Центры этих вспомогательных окружностей поместим в центры основных 
+окружностей <b>O1</b> и <b>O2</b> соответственно. Тогда центр <b>O3</b> окружности <code><b>cir3</b></code> можно найти как точку 
+пересечения вспомогательных окружностей. Для нахождения точек пересечения окружности 
+<code><b>cir3</b></code> с окружностями <code><b>cir1</b></code> и <code><b>cir2</b></code> создается окружность с центром <b>O3</b> и радиусом, 
+отличающимся в большую сторону от R3 на очень малую величину <em>epsilon</em>. Следовательно радиус этой окружности равен 
+<em>(R3 + epsilon)</em>. Введение этой малой величины необходимо для того, чтобы в процессе проведения вычислений заведомо 
+обеспечить пересечение соответствующих окружностей. В предельном случае, когда значение <em>epsilon</em> стремится к 0, 
+две точки пересечения сливаются и превращаются в одну точку касания окружностей. 
+Пересечение окружности <code><b>cir3</b></code> с радиусом равным <em>(R3 + epsilon)</em> с окружностями 
+<code><b>cir1</b></code> и <code><b>cir2</b></code> даст точки касания <b>F</b> и <b>G</b>.
+Точки пересечения окружностей определяются с помощью 
+функции <a href="../libs/Help.html#Circle2D_Intersection_TwoCircles"  target="_blank">
+ <code>Intersection_TwoCircles</code></a> 
+</p>
+
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_05" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container5" ></div> 
+	</div>	
+</div>
+
+<p>
+Функция отрисовки сопряжения двух окружностей третьей окружностью приведена ниже.
+</p>
+
+<pre class="prettyprint" id="quine">
+function draw_three_circles(ctx, O1, O2, O3, R1, R2, R3)	
+{
+	axes(ctx, 1.8, 1.8, 0.5, "Black");  // рисуем оси черным цветом
+	
+	// Необходимо провести сопряжение следующих двух окружностей.
+	var cir1 = new Circle2D(O1, R1); 
+	var cir2 = new Circle2D(O2, R2); 
+	
+	// Рисуем и обозначаем центр O1 коричневым цветом
+	csp(ctx, O1, 5, "Brown");
+	text1(ctx, "O1", O1, "rt", "up", "Brown");
+	// Рисуем дугу с центром O1 и радиусом R1 коричневым цветом
+	arc(ctx, O1, R1, 1, "Brown", 5, 120);
+	
+	// Рисуем и обозначаем центр O2 синим цветом
+	csp(ctx, O2, 5, "B");
+	text1(ctx, "O2", O2, "rt", "up", "B");
+	// Рисуем дугу с центром O2 и радиусом R2 синим цветом
+	arc(ctx, O2, R2, 1, "B", -60, 60);
+	
+	// Радиусы вспомогательных окружностей должны быть > 0 
+	if (R2 - R3 <= 0.0)
+	{
+		return null;
+	}
+	if (R1 - R3 <= 0.0)
+	{
+		return null;
+	}
+	
+	// Создаем две вспомогательные окружности.
+	var R2_R3 = new Circle2D(O2, R2 - R3); 
+	var R1_R3 = new Circle2D(O1, R1 - R3); 
+	
+	// Две дуги вспомогательных окружностей рисуем черным цветом и толщиной равной 0.3
+	arc(ctx, O1, R1 - R3, 0.3, "Black", 5, 120);  // рисуем дугу с центром O1 и радиусом R1 - R3
+	arc(ctx, O2, R2 - R3, 0.3, "Black", -60, 60); // рисуем дугу с центром O2 и радиусом R2 - R3
+
+	// Находим точки пересечения двух окружностей между собой
+	// Переменная points представляет собой массив из двух точек типа Point2D.
+	var points = R2_R3.Intersection_TwoCircles(R1_R3);
+	if (points == null)
+	{
+		return null;
+	}		
+	// Центр сопрягающей окружности O3
+	if (points[0][0] > points[1][0])
+	{
+		O3[0] = points[0][0]; O3[1] = points[0][1]
+	}
+	else
+	{
+		O3[0] = points[1][0]; O3[1] = points[1][1]			
+	}
+
+	// Создаем сопрягающую окружность чуть большего 
+	// радиуса чем R3 (для проверки)
+	var cir3 = new Circle2D(O3, R3 + 0.00001); // R3 + EPSILON);
+	csp(ctx, O3, 5, "R"); // рисуем точку красным цветом
+	text1(ctx, "O3", O3, "rt", "up", "R"); // обозначаем точку как "O3" красным цветом
+	circle(ctx, O3, R3, 1, "R"); // рисуем окружность красным цветом 
+	                             // с центром в точке O3 и радиусом равным R3
+
+	// Проверяем пересекаются или нет окружность 
+	// cir2 с сопрягающей окружностью cir3
+	// Координаты двух точек пересечения полученные в результате
+	// работы функции Intersection_TwoCircles должны 
+	// отличаться совершенно незначительно по своим значениям
+	// и в пределе переходить в одну точку касания окружностей "G".
+	points = cir2.Intersection_TwoCircles(cir3);
+	if (points == null)
+	{
+		return null;
+	}			
+	// Первая точка "G" сопряжения/касания 
+	var G = new Point2D(); // объявление точки
+	G[0] = points[0][0];
+	G[1] = points[0][1];
+	csp(ctx, G, 3, "R"); // рисуем точку красным цветом
+	text1(ctx, "G", G, "lt", "dn", "R"); // обозначаем точку как "G"
+	
+	// Проверяем пересекаются или нет окружность 
+	// cir1 с сопрягающей окружностью cir3
+	// Координаты двух точек пересечения полученные в результате
+	// работы функции Intersection_TwoCircles должны 
+	// отличаться совершенно незначительно по своим значениям
+	// и в пределе переходить в одну точку касания окружностей "F".
+	points = cir1.Intersection_TwoCircles(cir3);
+	if (points == null)
+	{
+		return null;
+	}	
+	// Вторая точка "F" сопряжения/касания 
+	var F = new Point2D(); // объявление точки
+	F[0] = points[0][0];
+	F[1] = points[0][1];
+	csp(ctx, F, 3, "R"); // рисуем точку красным цветом
+	text1(ctx, "F", F, "lt", "dn", "R"); // обозначаем точку как "F"
+	
+	// Предварительные расчеты требующиеся для рисования дуги сопряжения.
+	// Вычисляем углы начала и конца дуги сопряжения.
+	var line_O3_F = new Line2D(O3, F);
+	var line_O3_G = new Line2D(O3, G);
+	var line_hor = new Line2D(O3, new Point2D(O3[0] + 1, O3[1]));
+	var ang_F_degree = (180 / Math.PI) * line_O3_F.Angle(line_hor);
+	var ang_G_degree = (180 / Math.PI) * line_O3_G.Angle(line_hor);
+	
+	// Рисуем "жирную" дугу сопряжения окружностей красным цветом
+	arc(ctx, O3, R3, 4, "R",  -ang_G_degree, -ang_F_degree);
+}
+
+</pre>
+<p>	
+Полный текст программы сопряжения окружностей с отрисовкой на холсте находится в файле <b>three_circles.js</b>.
+</p>
+
+<h3 align = "center"> Построение правильного пятиугольника</h3>
+<p>
+Рассмотрим построение правильных многоугольников на холсте. Простейший способ таких построений состоит в 
+делении окружности на соответствующее количество частей при помощи транспортира и соединении между
+собой получившихся точек. 
+</p>
+<p>
+Однако эти построения можно провести только при помощи циркуля и линейки. В книге Джона Аллена
+<em>"Базовые геометрические формы для дизайнеров и архитекторов"</em> (издательство Питер 2016г.) подробно
+рассматриваются такие построения. Воспользуемся этой книгой и построим <em>пятиугольник</em> (<em>pentagon</em>), 
+<em>шестиугольник</em> (<em>hexagon</em>) и <em>семиугольник</em> (<em>heptagon</em>). 
+Только в качестве циркуля (как это делается в книге) будем использовать функцию создания окружности, 
+а в качестве линейки (она используется в книге) - функцию создания прямой из библиотеки <b>WebGeometry</b>. 
+Начнем с <em>пятиугольника</em>.
+</p>
+
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_06" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container6" ></div> 
+	</div>	
+</div>
+</p>
+<p>
+Начертим окружность с центром в точке <b>O</b>. Проведем горизонтальный диаметр окружности и получим точки
+пересечения <b>A</b> и <b>B</b>. В книге эти точки просто отмечаются карандашом, а мы используем для этого 
+функцию <a href="../libs/Help.html#Circle2D_Intersection_LineCircle"  target="_blank"><code>Intersection_LineCircle</code></a>
+из библиотеки <b>WebGeometry</b>. Раствором циркуля равным радиусу исходной окружности из точки <b>B</b> 
+проведем дугу (вместо дуг при вычислениях используем функции <code><b>Circle2D</b></code>)
+пересекающую окружность в точках <b>C</b> и <b>D</b>. Соединим точки <b>C</b> и <b>D</b> 
+чтобы найти точку <b>E</b>, делящую отрезок <b>OB</b> на две равные части. 
+Затем проводим вертикальную ось через точку <b>O</b> и пересекающую окружность в точке <b>F</b>.
+</p>
+
+<p>
+Установив ножку циркуля в точке <b>E</b>, раствором циркуля, равным <b>EF</b>, проведем дугу, пересекающую 
+горизонтальную ось в точке <b>G</b>. Установив ножку циркуля в точке <b>F</b>, раствором циркуля, равным <b>FG</b>, 
+проведем дугу пересекающую окружность в точках <b>H</b> и <b>J</b>. Из точек <b>H</b> и <b>J</b> проведем дуги, используя 
+тот же раствор циркуля, чтобы найти точки <b>K</b> и <b>L</b>. <b>FJKLH</b> - искомый пятиугольник.
+Точки пересечения дуг окружностей определяются с помощью функции 
+<a href="../libs/Help.html#Circle2D_Intersection_TwoCircles"  target="_blank"><code>Intersection_TwoCircles</code></a>
+</p> 
+<p>
+Исходный текст программы построения пятиугольника приведен в файле <b>pentagon.js</b>.
+</p>
+
+<h3 align = "center"> Построение правильного шестиугольника</h3>
+<p>
+Перейдем к построению правильного шестиугольника.
+</p>
+
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_07" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container7" ></div> 
+	</div>	
+</div>
+</p>
+
+<p>
+Начертим произвольную окружность с центром в точке <b>O</b> и радиусом <b>OA</b> равным значению <b>R</b>. 
+В качестве точки <b>A</b> может быть выбрана произвольная точка лежащая на окружности. 
+Установив ножку циркуля в точке <b>A</b> и используя тот же самый радиус проведем через центр <b>O</b> 
+дугу <b>BC</b> (от одной стороны окружности до другой). Из точки <b>B</b> проведем дугу через точки <b>A</b>, 
+<b>O</b> и новую точку <b>D</b> на окружности. Таким же образом из точки <b>D</b> проведем еще одну 
+дугу от точки <b>B</b>, чтобы найти точку <b>E</b>.<br>
+&nbsp; &nbsp; Далее продолжаем рисовать дуги из точек <b>E</b>, <b>F</b> и <b>C</b>, 
+пока не получится шестиугольник <b>ABDEFC</b>.
+</p>
+<p>
+Исходный текст программы построения шестиугольника приведен в файле <b>hexagon.js</b>. При расчетах его
+вершин координаты точек пересечения дуг между собой мы опредеделяем при помощи
+функции <a href="../libs/Help.html#Circle2D_Intersection_TwoCircles"  target="_blank"><code>Intersection_TwoCircles</code></a>
+входящей в состав библиотеки <b>WebGeometry</b>, а рисуем дуги на холсте
+используя функцию <b><code>arc</code></b> из файла <b>canvas2D.js</b>. Эта функция сделана на основе <em>одноименной</em> 
+функции <b><code>arc</code></b> входящей в <b>HTML5 Canvas</b>.
+</p>
+
+<h3 align = "center"> Построение почти правильного семиугольника</h3>
+<p>
+Построим <em>почти</em> правильный семиугольник. Как пишет (в упомянутой выше книге) Джон Аллен это построение точно на 99.9%.
+</p>
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_08" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container8" ></div> 
+	</div>	
+</div>
+</p>
+<p>
+Начертим произвольный круг с центром в точке <b>O</b> и радиусом <b>OC</b> равным значению <b>R</b>.
+Построим квадрат <b>EFGH</b> вокруг этого круга. Из точек <b>E</b> и <b>F</b> проведем две дуги, имеющие радиус,
+равный отрезку <b>EF</b>, и пересекающиеся в точке <b>J</b> внутри квадрата. <b>EFJ</b> - равносторонний треугольник,
+пересекающий изначальную окружность в точках <b>K</b> и <b>L</b>. <b>CK</b> и <b>CL</b> можно считать сторонами правильного 
+семиугольника с точностью 99.9%.<br>
+&nbsp; &nbsp; Установив раствор циркуля равным <b>CK</b> и двигаясь по окружности начиная из точки <b>K</b>, 
+отметим остальные четыре точки семиугольника. В результате получится семиугольник <b>CKMNPQL</b>.
+Исходный текст программы построения семиугольника приведен в файле <b>heptagon.js</b>.
+</p>
+&emsp; В следующей главе мы продолжим рассмотрение примеров с функциями библиотеки <b>WebGeometry</b> предназначенными
+для построений на плоскости.
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../Pyramid/Chapter_02.html"> <span class=brown>Глава 2 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span> <a href="Chapter_04.html"> <span class=brown> Глава 4  </span></a>
+</h3>
+
+
+
+</body>
+</html>

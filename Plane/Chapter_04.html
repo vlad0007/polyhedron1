@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 4 - Plane (part 2)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src="../libs/WebGeometry.js"></script>
+	<script src="../libs/canvas2D.js"></script>
+	<script src="superellipse.js"></script>
+	<script src="folium.js"></script>
+	<script src="strophoid.js"></script>
+	<script src="cardioid.js"></script>
+	<script src="waviness.js"></script>
+	
+	<style>
+		div.out
+		{
+			position: relative;
+			width: 670px;
+			height: 312px;
+			left: 5px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+	
+		div.in
+		{
+			position: absolute;
+			left: 405px;
+			top: 5px;			
+			height: 300px;
+			width: 255px;
+			background-color: #eeeeee;
+			border: solid 1px;
+		}
+
+		div.canvas
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 300px;
+			width: 400px;
+			background-color: #fcffff;
+			border: solid 0px;		
+		}
+		
+		div.gui
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;
+		}	
+	</style>
+
+<script>
+
+	var DEGREE = 0.01745329251994;
+	var M_PI = 3.14159265358979323846;
+	
+	var xC, yC, SCALE;
+		
+	function initiate()		
+	{
+		superellipse();
+		folium();
+		strophoide();
+		cardioid();
+		waviness();
+	}
+	
+addEventListener("load", initiate);
+</script>
+
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_03.html"> <span class=brown>Глава 3 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Octagon/Chapter_05.html"> <span class=brown> Глава 5  </span></a>
+</h3>
+
+<h2 align = "center"> 
+Three.js и геометрия. &ensp; 
+Глава 4. &ensp;  Библиотека WebGeometry и холст HTML5 (часть 2)</h2>
+
+<p>
+Продолжим рассмотрение функций библиотеки <b>WebGeometry</b> применительно к построению 
+геометрических фигур на плоскости. В данном разделе кривые линии на плоскости будут отрисовываться
+путем соединения предварительно рассчитанных координат точек принадлежащих этим линиям 
+отрезками прямых. <br>
+
+&nbsp; &nbsp; Предположим, что функциональная зависимость <b>y</b> от <b>x</b> не задана непосредственно <b>y = f(x)</b>, 
+а через промежуточную величину <b>t</b>, называемую параметром. 
+Тогда уже две формулы задают параметрическое представление функции.
+
+&nbsp; &nbsp; При построении кривых на плоскости в качестве параметра <b>t</b> мы будем обычно брать угол <b>&phi;</b>.
+Этот угол обычно определяется как угол наклона к оси абсцисс прямой проведенный из начала координат 
+(или из некоторой точки характерной для данной кривой) до точки лежащей непосредственно на кривой.
+</p>
+<h3 align = "center"> Построение и отрисовка на холсте кривой имеющей название <em>суперэллипс</em></h3>
+<p>
+<p>
+В качестве линий определяющих форму рундиста огранок часто используется <em>эллипс</em> (или <em>окружность</em>), а также замкнутая 
+кривая имеющая название <em>суперэллипс</em>
+</p>
+<img src = "figure_4_1.png" class="center-img-rounded" border = "2px">
+<p>
+Для расчета координат точек лежащих на суперэллипсе достаточно рассчитать его вид только для первого квадранта, 
+а для остальных квадрантов суперэллипса можно найти координаты принадлежащих 
+ему точек исходя из соображений симметрии.
+</p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_01" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container1" ></div> 
+	</div>	
+</div>
+<p>
+Для расчета точек на суперэллипсе используется функция <code>init_superellipse</code>.
+Параметр <code>square_deviation</code> задает величину отклонения суперэллипса от эллипса.
+Степень суперэллипса равна <br> 
+<code>&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; 2 / ( 1 - square_deviation )</code>.<br>
+Параметр <code>lw</code> задает удлинение эллипса вдоль оси X.
+При значениях <code>square_deviation = 0.0</code> и <code>lw = 1.0</code> суперэллипс становится окружностью.
+<pre class="prettyprint" id="quine">
+function init_superellipse(O, R, lw, square_deviation)
+{
+	var fi_0 = -90*DEGREE;
+	var r1 = R * lw; // Полуось эллипса по оси X
+	var r2 = -R;     // Полуось эллипса по оси Y
+
+	if ( square_deviation < -1 || square_deviation >= 0.995 )
+		return null;
+	var p = 2 / ( 1 - square_deviation );  // Степень суперэллипса
+
+	var del_fi = 2 * M_PI / 64; // Шаг углового параметра
+	var x, y, w, fi;
+
+	var i;
+	for (i = 0; i < 64; i++)
+	{
+		fi = fi_0 + i*del_fi; // Значение углового параметра
+		x = Math.cos(fi);
+		y = Math.sin(fi);
+		w = Math.pow (Math.abs (x), p) + Math.pow (Math.abs (y), p);
+		w = 1 / Math.pow ( w, 1/p );
+		var point = new Point2D ( O[0] + r1 * w * x,   O[1] + r2 * w * y);
+		points[i] = point;
+	}		
+}
+</pre>
+&emsp; Отрисовку на холсте осуществляет функция <code>draw_superellipse</code>, 
+текст которой находится в файле <b>superellipse.js</b>.
+</p>
+
+<h3 align = "center"> Построение и отрисовка на холсте кривой имеющей название <em>фолиум</em> (<em>листок</em>) </h3>
+<p>
+Кривая с названием <em>фолиум</em> (<em>simple folium</em>) имеет форму листа. В справочниках по плоским кривым можно
+найти ее параметрическое представление и по приведенным в них формулам построить эту кривую (рисунок <b>2</b>).
+Однако мы построим ее не по формулам, а чисто геометрическим способом. Для этого проведем окружность <code><b>cir</b></code> 
+имеющую диаметр <b>OA</b>. Из точки <b>O</b> проведем прямую до пересечения в точке <b>P</b> с этой окружностью. 
+Найдем проекцию точки <b>P</b> на прямую <b>OA</b>. Эта проекция будет находиться в точке <b>Q</b>. 
+Из точки <b>Q</b> опустим перпендикуляр на прямую <b>OP</b>. 
+Точка <b>М</b> пересечения этого перпендикуляра с прямой <b>OP</b> будет принадлежать искомой прямой.
+</p>
+
+<img src = "figure_4_2.png" class="center-img-rounded">
+&emsp; Построение остальных точек кривой можно осуществить повторением приведенного построения
+путем проведения последовательности прямых пересекающих окружность <b>cir</b>.<br><br>
+
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_02" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container2" ></div> 
+	</div>	
+</div>
+
+<pre class="prettyprint" id="quine">
+	// Кривую будем проводить через 32 точки.
+	var points_folium = [32];
+	..........................
+	..........................
+	var i;
+	// Рассчитаем 16 точек лежащих на верхней части искомой кривой.
+	var n = 16;
+	var fi = 0;
+	var d_fi = 90*DEGREE / n;
+	var cir_center = new Point2D(O[0] + a, O[1]);
+	var cir = new Circle2D(cir_center, a);
+	
+	var pt = new Point2D(O[0] + 1, O[1]);
+	for (i = 1; i < n; i++)
+	{
+		fi = fi + d_fi;
+		pt[1] = O[1] + Math.tan(fi);
+		//       Создаем прямую составляющую угол fi с осью OX
+		// (она проходит через точки O и pt - на рисунке это прямая OP) 
+		var line = new Line2D(O, pt);
+		
+		var point1 = new Point2D(); 
+		var point2 = new Point2D(); 
+		var P = new Point2D(); 
+		// Определяем точку <b>P</b>
+		if(!cir.IntersectionLineCircle (line, point1, point2))
+		{
+			return null;
+		}
+		
+		// Выбор точки P из двух точек пересечения прямой с окружностью
+		if (point1[1] > point2[1])
+		{
+			P[0] = point1[0];
+			P[1] = point1[1];
+		}
+		else
+		{
+			P[0] = point2[0];
+			P[1] = point2[1];			
+		}			
+		
+		// Определяем координаты точки <b>Q</b>
+		var Q = new Point2D(P[0], O[1]);
+		//   Создаем прямую <b>QM</b> перпендикулярную прямой line
+		// и проходящую через точку Q.
+		var QM = line.CreateNormalLinePoint(Q);
+		// Находим точку <b>M</b> лежащую на кривой <em>simple folium</em>
+		var M = line.IntersectionTwoLines(QM);
+
+		points_folium[i] = M;
+	}	 
+	points_folium[0] = new Point2D(O[0] + 2*a, O[1]);
+	points_folium[16] = new Point2D(O[0], O[1]);
+	
+	// Все остальные точки лежащие на кривой <em>simple folium</em>
+	// находим из соображений симметрии.
+	for (i = 1; i < 16; i++)
+	{
+		points_folium[16+i] = new Point2D(points_folium[16-i][0],  
+		                                - points_folium[16-i][1] + 2 * O[1] );
+	}
+</pre>
+
+<p>
+Полный текст программы осуществляющий расчет и построение на холсте кривой <em>фолиум</em> находится в файле <b>folium.js</b>.
+</p>
+<h3 align = "center"> Построение  <em>строфоиды</em> (<em>strophoid</em>) </h3>
+
+&nbsp;&nbsp;Строфоида это алгебраическая кривая 3-го порядка. Полный вид строфоиды показан на рисунке слева. Построим замкнутую
+часть строфоиды показанную на правой части рисунка <b>2</b>.
+
+<img src = "figure_4_3.png" class="center-img-rounded">
+<p>
+Построение производится следующим образом. Пусть задана точка <b>A</b> находящаяся на расстоянии <b>a</b> от оси ординат.
+Вокруг точки <b>A</b> вращается луч на котором откладывается отрезок <b>BM</b> равный отрезку <b>OB</b>. 
+Геометрическое место точек <b>M</b> и будет являться искомой кривой.
+
+</p>
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_03" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container3" ></div> 
+	</div>	
+</div>
+</p>
+<pre class="prettyprint" id="quine">
+	// Кривую будем проводить через 32 точки.
+	var points_strophoid = [32];
+	........................................
+	........................................
+	var i;
+	// Рассчитаем 16 точек лежащих на верхней части искомой кривой.
+	var n = 16;
+	var fi = 0;
+	var d_fi = 90*DEGREE / n;
+	
+	// Создаем вертикальную прямую проходящую через точку O.
+	// При запуске программы эта прямая совпадает с осью ординат.
+	var OY = new Line2D(O, new Point2D(O[0], O[1] + 1));
+	var A = new Point2D(O[0] - a, O[1]);
+	var pt = new Point2D(A[0] + 1, A[1]);
+	var B; // Объявление переменной для точки на вертикальной 
+	       // прямой проходящей через точку O. Мы будем вычислять
+		   // координаты этой точки внутри цикла.
+	for (i = 1; i < n; i++)
+	{
+		fi = fi + d_fi;
+		pt[1] = A[1] + Math.tan(fi);
+		//       Создаем прямую составляющую угол fi с осью OX
+		// (она проходит через точки A и pt - на рисунке это прямая AB) 
+		var line = new Line2D(A, pt);
+		B = line.IntersectionTwoLines(OY);
+		var dist_OB = B.Distance(O);
+		var dist_AB = B.Distance(A);
+		var dist_AM = dist_AB - dist_OB;
+		var dist_MB = dist_OB;
+		var relation = dist_AM / dist_MB;
+		var M = new Point2D();
+		// точка <b>M</b> делит отрезок <b>AB</b> в отношении равным величине <em>relation</em>
+		//          ( вспоминаем аналитическую геометрию )
+		M[0] = (A[0] + relation * B[0]) / (1 + relation);
+		M[1] = (A[1] + relation * B[1]) / (1 + relation);
+		points_strophoid[i] = M;
+	}
+	points_strophoid[0] = O;
+	points_strophoid[16] = A;
+	// Все остальные точки лежащие на кривой <em>strophoid</em>
+	// находим из соображений симметрии.
+	for (i = 1; i < 16; i++)
+	{
+		points_strophoid[16+i] = new Point2D(points_strophoid[16-i][0],  
+		                                   - points_strophoid[16-i][1] + 2 * O[1] );
+	}
+	
+</pre>
+<p>
+Полный текст программы осуществляющий расчет и построение строфоиды находится в файле <b>strophoid.js</b>.
+</p>
+
+<h3 align = "center"> Построение кривой <em>улитка Паскаля</em> (<em>Pascal's limaçon</em>) </h3>
+<p>
+<em>Улитка паскаля</em> - это плоская линия, которая описывается фиксированной точкой одной окружности, 
+катящейся по неподвижной другой окружности. Если радиусы обеих окружностей равны, 
+то такая кривая называется <em>кардиоидой</em>. Обозначим через <code><b>R1</b></code> расстояние от центра <b>O</b> до центра 
+подвижной окружности, а через <code><b>R2</b></code> - радиус подвижной окружности (смотри работу программы).
+<em>Кардиода</em> получается из <em>улитки Паскаля</em> когда <code>R1 = 2 &times; R2</code>.
+
+</p>
+<p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_04" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container4" ></div> 
+	</div>	
+</div>
+</p>
+
+<p>
+Построение улитки Паскаля иллюстрирует следующий код:
+</p>
+<pre class="prettyprint" id="quine">
+	// Кривую будем проводить через 32 точки.
+	var points_cardioid = [32];
+	...........................
+	...........................
+	var n = 32;
+	var fi = 0;
+	var d_fi = 180*DEGREE / n;
+	
+	var O = new Point2D (0, 0.0);
+	
+	for (i = 0; i < n; i++)
+	{
+		fi = fi + d_fi;
+		var x1 = R1 * Math.cos(fi); // одинарное значение угла &phi;
+		var y1 = R1 * Math.sin(fi); // одинарное значение угла &phi;
+		// Точка на одной окружности
+		var pt1 = new Point2D(x1, y1);
+		
+		var x2 = - R2 * Math.cos(2*fi); // удвоенное значение угла &phi;
+		var y2 = - R2 * Math.sin(2*fi); // удвоенное значение угла &phi;
+		// Точка на другой окружности
+		var pt2 = new Point2D(x2, y2);		
+		
+		// Складываем координаты точек на двух окружностях
+		var pt =  pt1.Add(pt2);
+		points_cardioid[i] = pt;
+		fi = fi + d_fi;
+	}
+</pre>
+
+<p>
+Полный текст программы осуществляющий расчет и построение улитки Паскаля находится в файле <b>cardioid.js</b>.
+</p>
+
+<h3 align = "center"> Построение кривой <em>waviness</em> </h3>
+<p>
+<em>Waviness</em> - это плоская линия, образованная комбинацией двух тригонометрических функций:
+</p>
+<pre class="prettyprint" id="quine">
+	var N = 96;
+	var i;
+	var del = 2 * M_PI / N;
+	var fi = 0;
+
+	for(i = 0; i < N; i++)
+	{
+		fi = 90*DEGREE - i*del;
+
+		var x = R * (1 / ( 1 + e * Math.cos(m * fi))) * Math.cos(fi) + O[0];
+		var y = R * (1 / ( 1 + e * Math.cos(m * fi))) * Math.sin(fi) + O[1];
+		var point = new Point2D ( lw * x, y);
+		points_w[i] = point;
+	}	
+</pre>
+<p> Форма эллипса (или окружности) изменяется путем умножения координат каждой его точки на
+величину равную
+<br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp; 1 / ( 1 + e * Math.cos(m * fi)) </code> <br>
+Значение <code>m</code> задает количество <em>холмов</em> и <em>впадин</em> на эллипсе, 
+а величина <code>e</code> определяет их <em>глубину/высоту</em>. Желательно задавать величине <code>e</code>
+значение равное целому положительному числу. В этом случае количество  <em>холмов</em> и <em>впадин</em> также
+будет равно целому (а не дробному) числу. 
+</p>
+<div class="out">  
+	<div class="canvas">
+		<canvas id="canvas_05" width="400" height="300" style="border: 1px solid"></canvas>
+	</div>
+	<div class="in">
+		<div class="gui" id="gui_container5" ></div> 
+	</div>	
+</div>
+</p>
+
+<p>
+В дальнейшем <b>2D</b>-функции входящие в библиотеку <b>WebGeometry</b> нам 
+понадобятся для построения рундистов огранок, а также программ-чертежей иллюстрирующих 
+соответствующие построения.
+</p>
+&emsp;В следующей главе мы перейдем к созданию <b>3D</b>-моделей сложных многогранников и будем
+для этого использовать <b>3D</b>-функции входящие в библиотеку <b>WebGeometry</b>.
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_03.html"> <span class=brown>Глава 3 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Octagon/Chapter_05.html"> <span class=brown> Глава 5  </span></a>
+</h3>
+
+</body>
+</html>

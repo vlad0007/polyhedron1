@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 11 - Jubilee Cut</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type="text/javascript" src="../libs/three.js"></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src = "../libs/OrbitControls.js"></script>
+	<script src = "../libs/WebGeometry.js"></script>
+	<script src = "../libs/polyhedron.js"></script>
+	<script src = "jubilee_verts.js"></script>
+	<script src = "jubilee.js"></script>
+	
+	<style>
+		#div_out_big
+		{
+			position: relative;
+			width: 1075px;
+			height: 525px;
+			left: 0px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+		#div_in_big
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 410px;
+			width: 1145px;
+			background-color: #eeffee;
+			border: solid 2px;
+		}
+		#div_pars_big
+		{
+			position: absolute;
+			left: 530px;
+			top: 2px;			
+			height: 515px;
+			width: 280px;
+			background-color: #eeeeaa;
+			border: solid 2px;
+		}
+		#gui_container_big
+		{
+			position: absolute;
+			left: 820px;
+			top: 5px;
+		}
+	</style>
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../Sunflower/Chapter_10.html"> <span class=brown>Глава 10 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Flower/Chapter_12.html"> <span class=brown> Глава 12  </span></a>
+</h3>
+
+<h2 align = "center"> Three.js и геометрия. &ensp; Глава 11. &ensp; Юбилейная огранка (<em>Jubilee cut</em>)</h2>
+
+<p>
+Юбилейная огранка создана в США к 60-летию вступления на престол королевы Виктории в 1897 году.
+Площадка  
+<b><a href="http://diamond3d.ucoz.ru/Jubilee/Jubilee_wireframe_trackball.html" target="_blank">этой огранки</a></b>
+имеет очень небольшой размер и зачастую грани примыкающие к ней сходятся
+практически в одну точку. По ссылке  
+<b><a href="http://diamond3d.ucoz.ru/Dispersion/Jubilee_D.html" target="_blank">Jubilee - Light Dispersion</a></b>  
+можно увидеть юбилейную огранку отображенную при помощи кубических карт. При нажатии на приведенной по ссылке 
+странице кнопки <b>Inverse</b> многогранник отобразится на черном фоне.
+<p>
+<br>
+<div id="div_out_big"> 
+		<canvas id="canvas" width="522" height="522" style="border: 1px solid"></canvas>
+		<div id="div_pars_big" >
+			<canvas id="canvas_pars" width="280" height="480"></canvas>
+			<div id="div_input">
+				                     <input type="radio" name="numeration" id = "btn_no"  />No
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_all" />All
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_cr_gd_pav"  />Cr-Gd-Pav
+			</div>		
+		</div>
+		<div id="gui_container_big" ></div> 
+</div>
+<h3 align = "center"> Нумерация вершин и обозначение граней модели </h3>
+<p>
+Как и большинство других огранок, юбилейная огранка (<em>jubilee</em>) состоит из трех частей – короны (верхняя часть огранки), 
+рундиста (средняя часть огранки)  и павильона (нижняя часть огранки).   
+Нумерация вершин огранки показаны на рисунках <b>1</b> и <b>2</b>.<br>
+&nbsp; &nbsp; На рисунке <b>1</b> показана нумерация вершин короны при взгляде на нее <em>сверху</em>, а на рисунке <b>2</b> - нумерация вершин павильона
+при взгляде на него <em>сверху</em> и наблюдателе находящимся при этом <em>внутри</em> модели огранки. Это сделано для того, чтобы положение
+граней короны и павильона на рисунках <em>соответствовало</em> друг другу. Поэтому, так как при рассматривании огранки
+в запущенной <em>программе</em> мы находимся <em>снаружи</em> модели, то нумерация вершин павльона будет <em>отличаться</em> от нумерации 
+показанной на рисунке <b>2</b> соответствущем образом. 
+</p>
+<img src = "jubilee.png" class="center-img">
+
+<h3 align = "center"> Структура данных модели (СДМ) юбилейной огранки  </h3>
+&nbsp; &nbsp; Структура данных модели содержит следующие параметры:
+<pre class="prettyprint" id="quine">
+	// СДМ - структура данных модели
+var lw = 1.0;                  // Отношение длины огранки к ее ширине
+	// Рундист
+var r = 0.2;                   // Толщина рундиста
+var square_deviation = 0.0001; // Квадратичность рундиста
+	// Корона
+var hCrown = 0.28;		// Высота короны
+var t = 0.05;			// Размер площадки
+var crown_middle_diameter = 0.77; // Определяет размер эллипса опоясывающего корону в ее средней части. 
+				// На этом диаметре расположены вершины короны 16, 17, 18, .... 23.
+var hCrownMid = 0.16;  // Задает высоту вершин короны 16, 17, 18, .... 23.
+var hCrownDown = 0.085; // Задает высоту вершин короны 24, 25, ... 31
+	// Павильон
+var hp = 0.46;		// Глубина павильона
+var ang_pav = 52*DEGREE; // Задает угол наклона граней D0, D1, .... D7.
+			// Эти грани сходятся в одной точке если их продожить вниз. 
+var DownCleanLevel = 0.1; // Задает глубину вершин павильона 0, 1, 2, 3, 4, 5, 6, 7.
+			// Также задает глубину вершин павильона 40, 41, 42, 43, 44, 45, 46, 47.
+var hPavFacet1 = 0.75; // Задает глубину вершин павильона 8, 9, 10, ... 22, 23.
+var hPavFacet2 = 0.60; // Определяет размер и положение самых нижних граней павильона F0 - F7.
+</pre>
+
+<h3 align = "center"> Расчет положения вершин короны  </h3>
+<pre class="prettyprint" id="quine">
+	// Также как в бриллианте
+	InitGirdle(64);
+	
+	var nCrown  = 32;
+	var nGirdle = 64;
+	var nPav    = 49;
+	
+	// Вспомогательные переменные и объекты
+	var Z1 = new Vector3D(0,0,1);	// Единичный вертикально расположенный ветор.
+	
+	var norm2d = new Vector2D;
+	var normPlaneVector = new Vector3D();
+	var i, j;
+	
+	// Конструируем корону
+	
+	// Плоскость на которой расположена площадка
+	var planeTable = new Plane3D();
+	planeTable.CreatePlaneNormalDistOXYZ(Z1, hCrown + r/2);	
+	
+	// этот угол можно услоно назвать углом наклона короны
+	// (напоминаем, что 0.5 это ширина огранки в условных единицах)
+	var tan_beta = hCrown / (0.5 - t/2); 
+
+	// <em>Виртуальная</em> точка upPoint необходима для определения 
+	// вершин короны лежащих на площадке
+	var upPoint = new Point3D(0.0, 0.0, r/2 + 0.5 * tan_beta);
+	
+	// Сначала проводим прямые через upPoint и соответствующие вершины рундиста.
+	// Затем находим пересечение этих прямых с плоскостью площадки.
+	for (i = 0; i < 8; i++)
+	{
+		var line = new Line3D(girdle[i*8], upPoint);
+		crown[i] = line.IntersectionLinePlane(planeTable);
+	}
+	//  Координаты на плоскости OXY средних (middle) по высоте 
+	// вершин короны 16, 17, 18, .... 23 расположены на эллипсе.
+	// Поэтому создаем (супер)эллипс на котором будут находиться 8 вершин короны.
+	// Эллипс располагается на высоте задаваемой параметром hCrownMid.
+	// Размер эллипса задается параметром crown_middle_diameter.
+	// Функция FillEllipse подобна функции расчитывающей линию рундиста.
+	FillEllipse(0.5 * crown_middle_diameter);	
+	
+	// Средние по высоте вершины короны расположились на (супер)эллипсе. 
+	for (i = 0; i < 8; i++)
+	{
+		crown[16+i] = new Point3D(temp[i][0], temp[i][1], r/2 + hCrownMid);
+	}
+	// Нижние грани короны - рядом с рундистом - A0, A1, .... A7
+	// Определяем векторы vec0 - vec7 задающие азимуты граней A0 - A7
+	var vec0 = new Vector3D(girdle[0][0] - girdle[8][0],   girdle[0][1] - girdle[8][1], 0.0);
+	var vec1 = new Vector3D(girdle[8][0] - girdle[16][0],  girdle[8][1] - girdle[16][1], 0.0);
+	...............................................
+	var vec7 = new Vector3D(girdle[56][0] - girdle[64][0], girdle[56][1] - girdle[64][1], 0.0);
+	
+	// грани A0 - A7 расчитываем по векторам vec0 - vec7 и соответствущим парам точек
+	var A0 = new Plane3D();   
+	A0.CreatePlaneVectorTwoPoints(vec0, crown[16], girdle[4]);
+	var A1 = new Plane3D();   
+	A1.CreatePlaneVectorTwoPoints(vec1, crown[17], girdle[12]);
+	var A2 = new Plane3D();   
+	................................................
+	var A7 = new Plane3D();   
+	A7.CreatePlaneVectorTwoPoints(vec7, crown[23], girdle[60]);
+	
+	// Пятиугольные C0, C1, C2, C3, C4, C5, C6, C7;
+	var C0 = new Plane3D();
+	C0.CreatePlaneThreePoints(crown[0], crown[1], crown[16]);
+	var C1 = new Plane3D();
+	C1.CreatePlaneThreePoints(crown[1], crown[2], crown[17]);
+	........................................................
+	var C7 = new Plane3D();
+	C7.CreatePlaneThreePoints(crown[7], crown[0], crown[23]);
+
+	// Плоскость определяющая высоту треугольных граней примыкающих к рундисту
+	var pl_crown_down = new Plane3D;
+	pl_crown_down.CreatePlaneNormalDistOXYZ(Z1, hCrownDown + r/2);
+	
+	// вершины короны 24, 25, ... 31 находим как точки пересечения трех плоскостей
+	crown[24] = pl_crown_down.IntersectionThreePlanes(A7, A0);
+	crown[25] = pl_crown_down.IntersectionThreePlanes(A0, A1);
+	.........................................................
+	crown[31] = pl_crown_down.IntersectionThreePlanes(A6, A7);
+	
+	// Четырехугольные средние грани короны B0, B1, B2;
+	var B0 = new Plane3D();
+	B0.CreatePlaneThreePoints(crown[23], crown[16], crown[24]);
+	var B1 = new Plane3D();
+	B1.CreatePlaneThreePoints(crown[16], crown[17], crown[25]);
+	var B2 = new Plane3D();
+	B2.CreatePlaneThreePoints(crown[17], crown[18], crown[26]);
+	
+	// Вершины верхнего яруса короны (чуть ниже площадки)
+	crown[8] = B0.IntersectionThreePlanes(C7, C0);
+	crown[9] = B1.IntersectionThreePlanes(C0, C1);
+	crown[10] = B2.IntersectionThreePlanes(C1, C2);
+	
+	// Исходя из симметрии огранки
+	crown[11] = new Point3D( crown[9][0],  -crown[9][1],  crown[9][2]);
+	crown[12] = new Point3D( crown[8][0],  -crown[8][1],  crown[8][2]);
+	crown[13] = new Point3D(-crown[11][0],  crown[11][1], crown[11][2]);
+	crown[14] = new Point3D(-crown[10][0],  crown[10][1], crown[10][2]);
+	crown[15] = new Point3D(-crown[9][0],   crown[9][1],  crown[9][2]);
+	
+	// Корректировка положения вершин рундиста по оси Z
+	corr_gd_crown(0, 4, 24);
+	corr_gd_crown(4, 8, 25);
+	.........................
+	corr_gd_crown(60, 0, 24);
+			.......................................................................
+			.......................................................................
+			function corr_gd_crown(gd1, gd2, cr)
+			{
+				var planeT = new Plane3D();
+				planeT.CreatePlaneThreePoints(girdle[gd1], girdle[gd2], crown[cr]);
+				var n = 4; //gd2 - gd1;
+				var i = 0;
+				for (i = 1; i < n; i++)
+				{
+					var vert_line = new Line3D(girdle[gd1 + i], girdle[gd1 + i + 64]);
+					var pt = vert_line.IntersectionLinePlane(planeT);
+					girdle[gd1 + i][2] = pt[2];
+				}
+			}	
+</pre>
+<h3 align = "center"> Расчет положения вершин павильона  </h3>
+<pre class="prettyprint" id="quine">
+	//            Конструируем павильон
+	var kollet = new Point3D(0, 0, - hp - r/2);	
+	
+	// Находим вершину где сходятся все грани D0, D1, .... D7
+	var dnPoint = new Point3D(0.0, 0.0, - 0.5 * Math.tan(ang_pav) - r/2);
+	
+	// Точки пересечения основных граней павильона между собой на уровне рундиста
+	// (как у стандартного бриллианта)
+	var line = [8]; // касательные к 8 точкам на рундисте то есть касательные
+					//  в вершинах рундиста 68, 76, 84, 92, 100, 108, 116, 124
+	var j = 3;
+	var k = 5;
+	for ( i = 0; i < 8; i++ )
+	{
+		var dir = new Vector2D(girdle[j][0] - girdle[k][0], girdle[j][1] - girdle[k][1]);
+		dir.Normer();
+
+		var pt = new Point2D(girdle[4+i*8][0], girdle[4+i*8][1]);
+		var ln = new Line2D(); 
+		ln.CreateLineVectorPoint(dir, pt);
+		line[i] = ln;
+		j = j + 8;
+		k = k + 8;
+	}	
+
+	var u = [8]; // точки пересечения предыдущих касательных между собой
+	u[1] = line[0].IntersectionTwoLines(line[1]);
+	.............................................
+	u[7] = line[6].IntersectionTwoLines(line[7]);
+	u[0] = line[7].IntersectionTwoLines(line[0]);
+
+	//  Расчет <em>виртуальных вершин</em>, которых в натуре нет.
+	// Эти виртуальные вершины используются для создания плоскостей,
+	//   в которых лежит большинство граней павильона.
+	//  Построение (до некоторой степени) подобно построению, 
+	//    фасет павильона бриллианта
+	//   Внимание ! При изменени параметров, <b>если hPavFacet2 = hPavFacet1</b>
+	// происходит <b>неправильное построение павильона</b> так как координаты части 
+	// вершин павильона совпадает со значением координат некоторых других его вершин.
+	// Иными словами часть вершин сливается в единые вершины !
+	var v = [16]; // шестнадцать <em>виртуальных</em> вершин
+
+	for (i = 0; i < 8; i++)
+	{
+		//   Сравнить с вектором dir при построении павильона бриллианта !!!
+		// Предполагаем, что все трехмерные точки двумерные координаты которых лежат в массиве u,
+		// имеют глубину равную  -r/2. Поэтому векторы имеют следующий вид:
+		var dir = new Vector3D(dnPoint[0] - u[i][0], dnPoint[1] - u[i][1], dnPoint[2] - (-r/2));
+		// dir.Normer(); // нормировка вектора dir все испортит !!!
+										 
+		v[i] = new Point3D(dnPoint[0] - hPavFacet1 * dir[0], // вершины расположенные
+						dnPoint[1] - hPavFacet1 * dir[1], //      ближе к рундисту
+						dnPoint[2] - hPavFacet1 * dir[2]);
+						
+		v[8+i] = new Point3D(dnPoint[0] - hPavFacet2 * dir[0], // вершины расположенные 
+							dnPoint[1] - hPavFacet2 * dir[1],  //   ближе к калетте
+							dnPoint[2] - hPavFacet2 * dir[2]);
+	}
+	// Плоскости в которых лежат грани расположенные рядом с калетой
+	// F0, F1, F2, F3, F4, F5, F6, F7;
+	var F0 = new Plane3D();
+	F0.CreatePlaneThreePoints(kollet, v[8], v[9]);
+	var F1 = new Plane3D();
+	F1.CreatePlaneThreePoints(kollet, v[9], v[10]);
+	...............................................
+	var F7 = new Plane3D();
+	F7.CreatePlaneThreePoints(kollet, v[15], v[8]);
+
+	// Плоскости в которых лежат грани D0 ... D7
+	var D0 = new Plane3D();
+	D0.CreatePlaneThreePoints(girdle[68], v[0], v[1]);
+	var D1 = new Plane3D();
+	D1.CreatePlaneThreePoints(girdle[76], v[1], v[2]);
+	..................................................
+	var D7 = new Plane3D();
+	D7.CreatePlaneThreePoints(girdle[124], v[7], v[0]);
+	
+	// Плоскости, опирающиеся на рундист
+	// G0, G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, G11, G12, G13, G14, G15;
+	var G15 = new Plane3D();
+	G15.CreatePlaneThreePoints(girdle[124], girdle[64], v[0]);
+	var G0 = new Plane3D();
+	G0.CreatePlaneThreePoints(girdle[64], girdle[68], v[0]);
+	........................................................
+	........................................................
+	var G13 = new Plane3D();
+	G13.CreatePlaneThreePoints(girdle[116], girdle[120], v[7]);
+	var G14 = new Plane3D();
+	G14.CreatePlaneThreePoints(girdle[120], girdle[124], v[7]);
+
+	// Горизонтальная плоскость на уровне DownCleanLevel
+	// Параметр DownCleanLevel влияет не только на положение
+	// вершин 0 - 7 павильона, но также на положение вершин 40 - 47 павидьона.
+	var pl_hPavFacet0 = new Plane3D();
+	pl_hPavFacet0.CreatePlaneNormalDistOXYZ(Z1, DownCleanLevel * (dnPoint[2] + r/2) - r/2 );
+
+	pavil[0] = pl_hPavFacet0.IntersectionThreePlanes(G15, G0);
+	pavil[1] = pl_hPavFacet0.IntersectionThreePlanes(G1, G2);
+	...........................................................
+	pavil[7] = pl_hPavFacet0.IntersectionThreePlanes(G13, G14);
+
+	// Два вектора для расчета плоскости E0
+	var vec_E0_1 = new Vector3D(girdle[68][0] - girdle[124][0], girdle[68][1] - girdle[124][1], 0.0);
+	vec_E0_1.Normer();
+	var vec_E0_2 = new Vector3D(v[0][0] - v[8][0], v[0][1] - v[8][1], v[0][2] - v[8][2]);
+	vec_E0_2.Normer();
+	var vec_0 = vec_E0_1.Cross(vec_E0_2); 
+	vec_0.Normer();
+
+	// Два вектора для расчета плоскости E1
+	var vec_E1_1 = new Vector3D(girdle[76][0] - girdle[68][0], girdle[76][1] - girdle[68][1], 0.0);
+	vec_E1_1.Normer();
+	var vec_E1_2 = new Vector3D(v[1][0] - v[9][0], v[1][1] - v[9][1], v[1][2] - v[9][2]);
+	vec_E1_2.Normer();
+	var vec_1 = vec_E1_1.Cross(vec_E1_2); 
+	vec_1.Normer();
+	
+	// Два вектора для расчета плоскости E2
+	var vec_E2_1 = new Vector3D(girdle[84][0] - girdle[76][0], girdle[84][1] - girdle[76][1], 0.0);
+	vec_E2_1.Normer();
+	var vec_E2_2 = new Vector3D(v[2][0] - v[10][0], v[2][1] - v[10][1], v[2][2] - v[10][2]);
+	vec_E2_2.Normer();
+	var vec_2 = vec_E2_1.Cross(vec_E2_2); 
+	vec_2.Normer();
+	
+	// Создаем плоскости в которых расположены грани E0, E1 и E2
+	var E0 = new Plane3D();
+	E0.CreatePlaneNormalVectorPoint(vec_0, pavil[0]);
+	var E1 = new Plane3D();
+	E1.CreatePlaneNormalVectorPoint(vec_1, pavil[1]);
+	var E2 = new Plane3D();
+	E2.CreatePlaneNormalVectorPoint(vec_2, pavil[2]);
+
+	// Расчет положения шести вершин ограничивающих грань E0
+	pavil[23] = E0.IntersectionThreePlanes(D7, G15);
+	pavil[8] = E0.IntersectionThreePlanes(D0, G0);
+	pavil[39] = E0.IntersectionThreePlanes(D7, F7);
+	pavil[40] = E0.IntersectionThreePlanes(F7, F0);
+	pavil[24] = E0.IntersectionThreePlanes(D0, F0);
+	
+	// Расчет положения шести вершин ограничивающих грань E1
+	pavil[9] = E1.IntersectionThreePlanes(D0, G1);
+	pavil[10] = E1.IntersectionThreePlanes(D1, G2);
+	pavil[25] = E1.IntersectionThreePlanes(D0, F0);
+	pavil[41] = E1.IntersectionThreePlanes(F0, F1);
+	pavil[26] = E1.IntersectionThreePlanes(D1, F1);
+	
+	// Расчет положения шести вершин ограничивающих грань E2
+	pavil[11] = E2.IntersectionThreePlanes(D1, G3);
+	pavil[12] = E2.IntersectionThreePlanes(D2, G4);
+	pavil[27] = E2.IntersectionThreePlanes(D1, F1);
+	pavil[42] = E2.IntersectionThreePlanes(F1, F2);
+	pavil[28] = E2.IntersectionThreePlanes(D2, F2);
+	
+	// Исходя из симметрии модели огранки
+	pavil[13] = new Point3D(pavil[10][0], -pavil[10][1], pavil[10][2]);
+	pavil[14] = new Point3D(pavil[9][0],  -pavil[9][1],  pavil[9][2]);
+	....................................................................
+	....................................................................
+	pavil[47] = new Point3D(-pavil[41][0], pavil[41][1],  pavil[41][2]);
+	// калетта
+	pavil[48] = new Point3D(kollet[0], kollet[1], kollet[2]);
+	
+	// Корректировка положения вершин рундиста по оси Z
+	corr_gd_pav(64, 68, 0);
+	corr_gd_pav(68, 72, 1);
+	........................
+	........................
+	corr_gd_pav(124, 64, 0);	
+			.........................................................................
+			.........................................................................
+			function corr_gd_pav(gd1, gd2, pav)
+			{
+				var planeT = new Plane3D();
+				planeT.CreatePlaneThreePoints(girdle[gd1], girdle[gd2], pavil[pav]);
+				var n = 4; //gd2 - gd1;
+				var i;
+				for (i = 1; i < n; i++)
+				{
+					var vert_line = new Line3D(girdle[gd1 + i], girdle[gd1 + i - 64]);
+					var pt = vert_line.IntersectionLinePlane(planeT);
+					girdle[gd1 + i][2] = pt[2];
+				}	
+			}
+</pre>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../Sunflower/Chapter_10.html"> <span class=brown>Глава 10 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Flower/Chapter_12.html"> <span class=brown> Глава 12  </span></a>
+</h3>
+
+</body>
+</html>

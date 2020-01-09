@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 8 - Octagon (part 4)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type="text/javascript" src="../libs/three.js"></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src = "../libs/OrbitControls.js"></script>
+	<script src = "../libs/WebGeometry.js"></script>
+	<script src = "../libs/polyhedron.js"></script>
+	<script src = "octagon_verts_4.js"></script>
+	<script src = "octagon_4.js"></script>
+	<style>
+		#div_out
+		{
+			position: relative;
+			width: 1007px;
+			height: 425px;
+			left: 0px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+		#div_in
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 610px;
+			width: 995px;
+			background-color: #eeffee;
+			border: solid 2px;
+		}
+		#div_pars
+		{
+			position: absolute;
+			left: 505px;
+			top: 2px;			
+			height: 415px;
+			width: 230px;
+			background-color: #eeeeaa;
+			border: solid 2px;
+		}
+		#gui_container
+		{
+			position: absolute;
+			left: 745px;
+			top: 5px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_07.html"> <span class=brown>Глава 7 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Brilliant/Chapter_09.html"> <span class=brown> Глава 9  </span></a>
+</h3>
+
+<h2 align = "center"> Three.js и геометрия. &ensp; Глава 8. &ensp; Многогранник октагон (часть 4)</h2>
+
+<p>
+Создадим заключительный вариант огранки октагон. Он будет немногим отличаться от предыдущего третьего варианта
+рассмотренного в главе <b>7</b>.
+Построение короны останется неизменным. При создании павильона отличие будет заключаться в двух моментах:
+<p>
+Из <b>СДМ</b> уберем параметр <code>angle_D</code>, задающей наклон граней 
+<b>D0 - D7</b>. А вместо него добавим параметр <code>angle_E</code>, задающей наклон граней <b>E0 - E7</b>.
+<br>
+Заменим в <b>СДМ</b> параметр <code>hMiddleFacet</code> на параметр <code>hLowerFacet</code>, 
+который будет задавать глубину на которой должны лежать вершины <b>8 - 15</b> павильона.
+Положение вершин <b>0 - 7</b> павильона теперь будет не задаваться изначально в <b>СДМ</b>, 
+а получаться автоматически путем определения точек пересечения соответствующих плоскостей.
+</p>
+
+<pre class="prettyprint" id="quine">
+	pavil[16] = new Point3D(culet_dx, culet_dy, -r/2 - hp);
+	var dh = -r/2 + 0.02;
+	
+	// нижние, примыкающие к калетте, четырехугольные грани павильона E0 - E7
+	var planes_down = [8];
+	var E0 = new Plane3D();
+	E0.CreateInclinePlane(angle_E, girdle[8], girdle[15], pavil[16]);
+	planes_down[0] = E0;
+
+	// создаем плоскости (planes_down) в которых лежат грани E1 - E7
+	for (i = 1; i < 8; i++)
+	{	
+		var plane = new Plane3D();
+		plane.CreateInclinePlane(angle_E, girdle[i+8], girdle[8 + i - 1], pavil[16]);
+		planes_down[i] = plane;
+	}	
+	
+	// горизонтальная плоскость на уровне вершин 8, 9, 10, 11, 12, 13, 14, 15 павильона
+	var plane_LowerFacet = new Plane3D();
+	plane_LowerFacet.CreatePlaneNormalDistOXYZ(Z1, - r/2 - hp * hLowerFacet);	
+
+	// Вершины 8, 9, 10, 11, 12, 13, 14, 15
+	pavil[8]  = plane_LowerFacet.IntersectionThreePlanes(planes_down[0], planes_down[1]);
+	pavil[9]  = plane_LowerFacet.IntersectionThreePlanes(planes_down[1], planes_down[2]);
+	pavil[10] = plane_LowerFacet.IntersectionThreePlanes(planes_down[2], planes_down[3]);
+	pavil[11] = plane_LowerFacet.IntersectionThreePlanes(planes_down[3], planes_down[4]);
+	pavil[12] = plane_LowerFacet.IntersectionThreePlanes(planes_down[4], planes_down[5]);
+	pavil[13] = plane_LowerFacet.IntersectionThreePlanes(planes_down[5], planes_down[6]);
+	pavil[14] = plane_LowerFacet.IntersectionThreePlanes(planes_down[6], planes_down[7]);
+	pavil[15] = plane_LowerFacet.IntersectionThreePlanes(planes_down[7], planes_down[0]);		
+	
+	// четырехугольные грани павильона D0 - D7
+	
+	// Создаем два вектора a0 и b0. Их векторное произведение определит нормальный вектор плоскости D0.
+	var a0 = new Vector3D(pavil[8][0] - girdle[8][0], pavil[8][1] - girdle[8][1], pavil[8][2] - girdle[8][2]);
+	var b0 = new Vector3D(girdle[9][0] - girdle[15][0], girdle[9][1] - girdle[15][1], 0);
+	var vec_D0 = a0.Cross(b0); // вектор перпендикулярный к плоскости D0
+	vec_D0.Normer();
+	var D0 = new Plane3D(); 
+	D0.CreatePlaneNormalVectorPoint(vec_D0, pavil[8]);	
+	
+	..................................................
+	..................................................
+	
+	// Создаем два вектора a7 и b7. Их векторное произведение определит нормальный вектор плоскости D7.
+	var a7 = new Vector3D(pavil[15][0] - girdle[15][0], pavil[15][1] - girdle[15][1], pavil[15][2] - girdle[15][2]);
+	var b7 = new Vector3D(girdle[8][0] - girdle[14][0], girdle[8][1] - girdle[14][1], 0);
+	var vec_D7 = a7.Cross(b7); // вектор перпендикулярный к плоскости D0
+	vec_D7.Normer();
+	var D7 = new Plane3D(); 
+	D7.CreatePlaneNormalVectorPoint(vec_D7, pavil[15]);	
+	
+	// находим координаты вершин 0 - 7 павильона
+	pavil[0] = planes_down[0].IntersectionThreePlanes(D0, D7);
+	pavil[1] = planes_down[1].IntersectionThreePlanes(D1, D0);
+	pavil[2] = planes_down[2].IntersectionThreePlanes(D2, D1);
+	pavil[3] = planes_down[3].IntersectionThreePlanes(D3, D2);
+	pavil[4] = planes_down[4].IntersectionThreePlanes(D4, D3);
+	pavil[5] = planes_down[5].IntersectionThreePlanes(D5, D4);
+	pavil[6] = planes_down[6].IntersectionThreePlanes(D6, D5);
+	pavil[7] = planes_down[7].IntersectionThreePlanes(D7, D6);
+	
+</pre>
+<br>
+
+<div id="div_out">  
+		<canvas id="canvas" width="500" height="422" style="border: 1px solid"></canvas>
+		
+		<div id="div_pars" >
+			<canvas id="canvas_pars" width="230" height="380"></canvas>
+			<div id="div_input">
+				                     <input type="radio" name="numeration" id = "btn_no"  />No
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_all" />All
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_cr_gd_pav"  />Cr-Gd-Pav
+			</div>		
+		</div>
+		<div id="gui_container" ></div> 
+</div>
+
+<h3 align = "center"> Заключение по вариантам построения моделей огранок типа <em>октагон</em></h2>
+<p>
+Четыре варианта построения были сделаны в основном для того, чтобы показать, как можно использовать
+функции библиотеки <b>WebGeometry</b> при создании трехмерных моделей с <em>нуля</em> - используя только
+методы аналитической геометрии, не требуя при этом загрузки каких либо файлов с уже готовыми <b>3D</b>-объектами
+или частями этих объектов. Было рассмртрено, как выбор параметров в <b>СДМ</b> определяет построение 
+моделей, и как конкретный выбор параметров воздействует на изменение формы модели при их
+изменении. 
+</p>
+</p>
+При построении огранок типа <em>октагон</em> не рассматривались вычисляемые параметры (они были вкратце затронуты в  
+ <a href="../Pyramid/Chapter_01.html#"><code>главе 1</code></a> ),
+такие как, например,  <code>totalHtFix</code>. Их можно было бы ввести в программу
+но для сокращения изложения это не было сделано. Параметр <code>totalHt</code> хотя и является вычисляемым, но он только
+отображает значение общей высоты модели и не позволяет ее задавать. 
+При желании можно порекомендовать веруться к программе построения пирамиды и обратить внимание на то, как в ней
+используется такой интересный параметр как <code>totalHtFix</code>, который пропорционально изменяет ширину
+и длину модели при ее неизменной высоте.
+</p>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_07.html"> <span class=brown>Глава 7 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="../Brilliant/Chapter_09.html"> <span class=brown> Глава 9  </span></a>
+</h3>
+
+</body>
+</html>

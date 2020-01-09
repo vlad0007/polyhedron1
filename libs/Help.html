@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Lesson Doc</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<style>
+		.blue2 
+		{
+			font-size: 12pt;
+			color: blue;
+			font-style: italic; 
+			font-weight: bold;
+		}
+		
+		.black 
+		{
+			font-size: 12pt;
+			color: black;
+			//font-style: italic; 
+			font-weight: bold;
+		}
+		code 
+		{
+			font-size: 12pt;
+			color: DarkMagenta;
+		}
+	</style>
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+</h3>
+
+<h3 align = "left"> &emsp;&emsp; 2D векторы.</h3>
+
+<a name="Vector2D"></a> <b><span class=black>function Vector2D(x, y)</span></b>
+<br>
+Функция-конструктор двумерных векторов  <code>Vector2D</code>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b> 
+1. Создание двумерного вектора с координатами <code>(2, 1)</code>.
+var vec = new Vector2D(2, 1); // vec = [2, 1]
+
+2. Создание (объявление) пустого двумерного вектора.
+Координаты вектора <code>x</code> и <code>y</code> - пока неопределены.
+var vec = new Vector2D(); // vec = [undefined, undefined]
+</pre>
+<br><br>
+
+
+
+<a name="Vector2D_Add"></a>  <span class=black>Vector2D.prototype.Add  =  function(vector)</span>
+<br>
+Сложение двумерных векторов. Функция возвращает новый вектор, 
+получившийся в результат сложения координат одного вектора с координатами другого вектора.
+<br>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector2D(2, 1);
+var vecOut = vec.Add(new Vector2D(3, 2)); // vecOut = [5, 3]
+</pre>
+<br><br>
+
+
+<a name="Vector2D_Subtract"></a> <span class=black>Vector2D.prototype.Subtract  =  function(vector)</span>
+<br>
+Вычитание из координат одного вектора координат другого вектора. 
+Функция возвращает новый вектор, получившийся в результат вычитания соответствующих координат.
+<br>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector2D(2, 1);
+var vecOut = vec.Subtract(new Vector2D(3, 2)); // vecOut = [-1, -1]
+</pre>
+<br><br>
+
+<a name="Vector2D_Dot"></a> <b><span class=black>Vector2D.prototype.Dot  =  function(vector)</span></b>
+<br>
+Скалярное произведение векторов.  
+Функция возвращает результат скалярного произведения векторов.
+<br>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec1 = new Vector2D(2, 1);
+var vec2 = new Vector2D(4, 3);
+var dot = vec1.Dot(vec2);      // dot = 11
+</pre>
+<br><br>
+
+<a name="Vector2D_Normer"></a> <b><span class=black>Vector2D.prototype.Normer  =  function()</span></b>
+<br>
+Нормировка данного вектора <code>this</code>.
+<br>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+vec1 = new Vector2D(1, 1);
+vec1.Normer();     // vec1 = [0.7071067811865475, 0.7071067811865475]
+vec2 = new Vector2D(3, 1);
+vec2.Normer();     // vec2 = [0.9486832980505138, 0.31622776601683794]
+</pre>
+<br><br>
+
+<a name="2D_Rotate"></a> <b><span class=black>Vector2D.prototype.Rotate  =  function(angle)</span></b>
+<br> 
+Вращение на плоскости вектора на угол <code>angle</code>. 
+Функция возвращает новый вектор, получившийся в результат поворота.
+<br>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+Вращение вектора vec на 90 градусов по часовой стрелке.
+var radian = 90 * Math.PI / 180;
+vec = new Vector2D(1, 0); 
+var vecOut = vec.Rotate(radian); // vecOut = [0, -1]
+</pre>
+<br><br>
+
+<a name="Vector2D_Translate"></a> <b><span class=black>Vector2D.prototype.Translate  =  function(vector)</span></b>
+<br>
+Перенос вектора <code>this</code> на вектор <code>vector</code>.  Фактически 
+<br>
+&emsp;&emsp;<code>this = this + vector</code>
+
+
+<h3 align = "left"> &emsp;&emsp; 2D матрицы.</h3>
+
+<a name="Matrix2D"></a><b><span class=black>function Matrix2D(m00, m01, m10, m11)</span></b>
+<br>
+Функция-конструктор двумерных матриц <code>Matrix2D</code>
+<br>
+&emsp;<code>[m00, m01]</code><br>
+&emsp;<code>[m10, m11]</code><br>
+
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix2D(0, 1, 2, 3);// mat = [0, 1]
+                                   //       [2, 3]
+</pre>
+<br><br>
+
+<a name="Matrix2D_Det"></a><b><span class=black>Matrix2D.prototype.Det  =  function()</span></b>
+<br>
+Функция возвращает величину определителя матрицы
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+Вычисление детермината 2D-матрицы.
+var mat = new Matrix2D(0, 1, 2, 3);
+var det = mat.Det();  // det = -2
+</pre>
+<br><br>
+
+<a name="Matrix2D_Inverse"></a><b><span class=black>Matrix2D.prototype.Inverse = function();</span></b>
+<br>
+Инверсия матрицы.  Функция возвращает матрицу обратную к исходной матрице.<br>  
+Если детерминат матрицы <code>this</code> равен <b>0</b>, то функция возвращает <code>null</code>.      
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+Вычисление обратной матрицы.
+1. var mat1 = new Matrix2D(0, 1, 2, 3);
+   var inv1 = mat1.Inverse(); // inv1 = [0,  0.5]                                
+                              //        [1, -1.5]
+							 
+2. var mat2 = new Matrix2D(1, 1, 1, 1);  // det = 0
+   var inv2 = mat2.Inverse();            // inv2 = null
+
+</pre>
+<br><br>
+
+<a name="Matrix2D_Transpose"></a><b><span class=black>Matrix2D.prototype.Transpose  =  function();</span></b>
+<br>
+Транспонирование матрицы.  Функция возвращает транспонированную матрицу <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix2D(0, 1, 2, 3); // mat = [0, 1]
+                                    //       [2, 3]
+var tr = mat.transpose();           // tr = [0, 2]
+                                    //      [1, 3]
+
+</pre>
+<br><br>
+
+<a name="Matrix2D_MultiplyMatrixVector"></a><b><span class=black>Matrix2D.prototype.MultiplyMatrixVector  =  function(vector);</span></b>
+<br>
+Умножение матрицы на вектор.  Функция возвращает вектор, 
+получившийся в результате умножения матрицы на исходный вектор <code>vector</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector2D(1, 3);
+var mat = new Matrix2D(1, 2, 3, 4);	
+var vecOut = mat. MultiplyMatrixVector (vec); // vecOut = [7, 15]
+
+</pre>
+<br><br>
+
+<h3 align = "left"> &emsp;&emsp; 2D точки.</h3>
+
+<a name="Point2D"></a><b><span class=black> function Point2D(x,  y);</span></b>
+<br>
+Функция-конструктор точек на плоскости <code>Point2D</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+1. Создание точки с координатами (2, 1).
+var point = new Point2D(2, 1);
+ 
+2. Создание(объявление) точки, кординаты которой пока не определены.                        
+Координаты точки, если потребуется, будут определены в программе в дальнейшем.
+var point = new Point2D();  //  point = [undefined, undefined]
+</pre>
+<br><br>
+
+<a name="Point2D_Add"></a><b><span class=black> Point2D.prototype.Add  =  function(point);</span></b>
+<br>
+Сложение координат двух точек на плоскости.  
+Функция возвращает точку с координатами равными сумме координт двух исходных точек.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1  =  new Point2D(1, 2);
+var pt2  =  new Point2D(3, 4); 
+var ptOut =  pt1.Add(pt2);  // ptOut = [4, 6]
+</pre>
+<br><br>
+
+
+<a name="Point2D_Translate"></a><b><span class=black>Point2D.prototype.Translate  =  function(vector);</span></b>
+<br>
+Перенос точки на величину, заданную вектором.  
+Функция возвращает новую точку с координатами  
+смещенными на значение вектора <code>vector</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt = new Point2D(1, 2);
+var vec = new Vector2D(3, 4); 
+var ptOut = pt.Translate(vec);  // ptOut = [4, 6]
+</pre>
+<br><br>
+
+
+<a name="Point2D_Distance"></a><b><span class=black>Point2D.prototype.Distance = function(point)</span></b>
+<br>
+Функция возвращает значение расстояния между двумя точками на плоскости.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point2D(1, 1);
+var pt2 = new Point2D(2, 2);
+var dist = pt1.Distance(pt2); // dist = 1.4142135623730951
+</pre>
+<br><br>
+
+
+<h3 align = "left"> &emsp;&emsp; 2D прямые.</h3>
+
+<a name="Line2D"></a><b><span class=black>function Line2D(point1,  point2)</span></b>
+<br>
+Функция-конструктор прямой <code>Line2D</code>.  Прямая задается точками <code>point1</code> и <code>point2</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+1. var line = new Line2D(); // directCos = [undefined, undefined]
+                            // distOXY = undefined
+2. var line1 = new Line2D(new Point2D(-1, 0), new Point2D(0, 1));
+                      // directCos = [0.7071067811865475, -0.7071067811865475]
+                      // distOXY = -0.7071067811865475
+3. var line2 = new Line2D(new Point2D(1, 0), new Point2D(0, 1));
+                      // directCos =  [0.7071067811865475, 0.7071067811865475]
+                      // distOXY = 0.7071067811865475
+
+</pre>
+<br><br>
+
+<a name="Line2D_NormalLine"></a><b><span class=black>Line2D.prototype.NormalLine  =  function()</span></b>
+<br>
+Функция создает прямую на плоскости, перпендикулярную к исходной прямой.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line = new Line2D(new Point2D(-1, 0), new Point2D(0, 1));
+	       // directCos =  [0.7071067811865475, -0.7071067811865475]
+            // distOXY = -0.7071067811865475	   
+var lineNormal = line.NormalLine();
+	       // directCos =  [0.7071067811865475, 0.7071067811865475]
+            // distOXY = -0.7071067811865475
+</pre>
+<br><br>
+
+<a name="Line2D_CreateNormalLinePoint"></a><b><span class=black>Line2D.prototype.CreateNormalLinePoint  =  function(point)</span></b>
+<br>
+Функция создает прямую на плоскости перпендикулярную к прямой <code>line</code> 
+и проходящую через точку <code>point</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line = new Line2D(new Point2D(-1, 0), new Point2D(0, 1));
+                      // directCos =  [0.7071067811865475, -0.7071067811865475]
+                      // distOXY = -0.7071067811865475	      
+var point = new Point2D(0, 1);    // point = [0, 1]
+var lineNormal = line.CreateNormalLinePoint(point);		  
+                      // directCos =  [0.7071067811865475, 0.7071067811865475]
+                      // distOXY = 0.7071067811865475	
+</pre>
+<br><br>
+
+
+<a name="Line2D_IntersectionTwoLines"></a><b><span class=black>Line2D.prototype.IntersectionTwoLines  =  function(line)</span></b>
+<br>
+Функция возвращает точку лежащую на пересечении двух прямых на плоскости.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line1 = new Line2D(new Point2D(-1, 0), new Point2D( 1, 2));
+var line2 = new Line2D(new Point2D( 1, 0), new Point2D(-1, 2));
+var point = line1.IntersectionTwoLines(line2, point); 
+                                           // point = [0, 1]
+</pre>
+<br><br>
+
+<a name="Line2D_Angle"></a><b><span class=black>Line2D.prototype.Angle  =  function(line)</span></b>
+<br>
+Функция возвращает значение угла на плоскости между двумя прямыми.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line1 = new Line2D(new Point2D(0, 0), new Point2D(1, 0));
+var line2 = new Line2D(new Point2D(-1, 0), new Point2D(0, 1));
+var line3 = new Line2D(new Point2D(1, 0), new Point2D(0, 1));
+var degreeAng12 = (180 / Math.PI) * line1.Angle(line2); 
+ // degreeAng12 = 45°
+var degreeAng13 = (180 / Math.PI) * line1.Angle(line3);
+ // degreeAng13 = 135°
+
+</pre>
+<br><br>
+
+<a name="Line2D_CreateLineVectorPoint"></a><b><span class=black>Line2D.prototype.CreateLineVectorPoint  =  function(vector, point)</span></b>
+<br>
+Прямая <code>line</code> на плоскости создается по вектору направления <code>vector</code> 
+и точке <code>point</code> лежащей  на создаваемой прямой.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vector = new Vector2D(2, 1);
+var point = new Point2D(3, 0);
+var line = new Line2D(); // объявление прямой line
+// назначение прямой line требуемых параметров
+line.CreateLineVectorPoint(vector, point);
+   // directCos = [0.4472135954999579, -0.8944271909999159]
+   // distOXY = 1.3416407864998738
+</pre>
+<br><br>
+
+
+<a name="Line2D_Distance  =  function(point)"></a><b><span class=black>Line2D.prototype.Distance  =  function(point)</span></b>
+<br>
+Функция возвращает значение расстояния на плоскости точки <code>point</code> от прямой <code>line</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line = new Line2D(new Point2D(0, 0), new Point2D(0, 1));
+var point = new Point2D(4, 2);
+var dist = line.Distance(point); // dist = 4
+
+</pre>
+<br><br>
+
+
+<h3 align = "left"> &emsp;&emsp; 2D окружность.</h3>
+
+<a name="Circle2D"></a><b><span class=black>function Circle2D(point,  radius)</span></b>
+<br>
+ Функция-конструктор окружности на плоскости <code>Circle2D</code>. 
+ Окружность задается своим центром <code>point</code> и величиной радиуса <code>radius</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var cir = new Circle2D(new Point2D(4, 3), 2);
+</pre>
+<br><br>
+
+<a name="Circle2D_IntersectionTwoCircles"></a><b><span class=black>Circle2D.prototype.IntersectionTwoCircles = function(circle,  point1,  point2)</span></b>
+<br>
+Функция определяет точки пересечения <code>point1</code> и <code>point2</code> двух окружностей.
+Первая окружность задается <code>this</code>, а вторая – параметром circle.<br>
+Переменные <code>point1</code> и <code>point2</code> определяются предварительно 
+и вне функции <code>IntersectionTwoCircles</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+Пересечение окружности cir1 с окружностью cir2
+var cir1 = new Circle2D(new Point2D(0, 0), 1); 
+var cir2 = new Circle2D(new Point2D(1, 0), 1); 
+var point1 = new Point2D(); 
+var point2 = new Point2D(); 
+if(!cir1.IntersectionTwoCircles(cir2, point1, point2))
+     return null;
+// point1 = [0.5,  0.8660254037844386] 
+// point2 = [0.5, -0.8660254037844386]
+</pre>
+<br><br>
+
+<a name="Circle2D_Intersection_TwoCircles"></a><b><span class=black>Circle2D.prototype.Intersection_TwoCircles = function(circle)</span></b>
+<br>
+Функция возвращает в двумерном массиве точки пересечения двух окружностей.
+Первая окружность задается <code>this</code>, а вторая – параметром circle.<br>
+Данная функция делает то же самое, что и функция <code>IntersectionTwoCircles</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+Пересечение окружности cir1 с окружностью cir2
+var cir1 = new Circle2D(new Point2D(0, 0), 1); 
+var cir2 = new Circle2D(new Point2D(1, 0), 1); 
+var points = cir1.Intersection_TwoCircles(cir2);
+if (points == null)
+     return null;
+// points[0] = [0.5,  0.8660254037844386] 
+// points[1] = [0.5, -0.8660254037844386]
+</pre>
+<br><br>
+
+<a name="Circle2D_IntersectionLineCircle"></a><b><span class=black>Circle2D.prototype.IntersectionLineCircle = function(line, point1, point2)</span></b>
+<br>
+Функция определяет точки пересечения на плоскости <code>point1</code> 
+и <code>point2</code> окружности <code>this</code> с прямой <code>line</code>.<br>
+Переменные <code>point1</code> и <code>point2</code> определяются предварительно 
+и вне функции <code>IntersectionLineCircle</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var cir = new Circle2D(new Point2D(0, 0), 2); 
+var line = new Line2D(new Point2D(0,0), new Point2D(1,1)); 
+var point1 = new Point2D(); 
+var point2 = new Point2D(); 
+if(!cir.IntersectionLineCircle(line, point1, point2))
+    return null;
+// point1 = [ 1.4142135623730951,  1.4142135623730951] 
+// point2 = [-1.4142135623730951, -1.4142135623730951]
+
+</pre>
+<br><br>
+
+
+<a name="Circle2D_Intersection_LineCircle"></a><b><span class=black>Circle2D.prototype.Intersection_LineCircle = function(line, point1, point2)</span></b>
+<br>
+Функция возвращает в двумерном массиве точки пересечения на плоскости 
+окружности <code>this</code> с прямой <code>line</code>.<br>
+Данная функция делает то же самое, что и функция <code>IntersectionLineCircle</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var cir = new Circle2D(new Point2D(0, 0), 2); 
+var line = new Line2D(new Point2D(0,0), new Point2D(1,1));
+var points = cir.Intersection_LineCircle(line);
+if (points == null)
+     return null;
+// points[0] = [ 1.4142135623730951,  1.4142135623730951] 
+// points[1] = [-1.4142135623730951, -1.4142135623730951]
+
+</pre>
+<br><br>
+
+
+
+<a name="QuadraticEquation"></a><b><span class=black>function QuadraticEquation(a, b, c, rez)</span></b>
+<br>
+Решение квадратного уравнения.<br>                                                                                                         
+<code>a, b, c</code>  -  коэффициенты и свободный член уравнения.<br> 
+<code>rez</code>  -  результат решения (массив из двух значений).
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var a = 1;
+var b = -4;
+var c = 3;
+var rez = [];
+if(!QuadraticEquation(a, b, c, rez))
+{
+    return null;
+}
+// rez = [3, 1]
+</pre>
+<br><br>
+
+<a name="Quadratic_Equation"></a><b><span class=black>function Quadratic_Equation(a, b, c)</span></b>
+<br>
+Решение квадратного уравнения.<br>                                                                                                         
+<code>a, b, c</code>  -  коэффициенты и свободный член уравнения.<br> 
+Функция возвращает в двумерном массиве результат решения уравнения.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var a = 1;
+var b = -4;
+var c = 3;
+var rez = Quadratic_Equation(a, b, c);
+if(rez == null)
+{
+    return null;
+}
+// rez = [3, 1]
+</pre>
+<br><br>
+
+<h3 align = "left"> &emsp;&emsp; 3D векторы.</h3>
+
+<a name="Vector3D"></a><b><span class=black>function Vector3D(x,  y,  z) </span></b>
+<br>
+Функция-конструктор векторов <code>Vector3D</code> в пространстве.<br>
+<code>x, y, z</code> - значения координат создаваемого вектора
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+var vec1 = new Vector3D(3, 2, 1); // vec1 = [3, 2, 1]
+var vec2 = new Vector3D(); // vec2 = [undefined, undefined, undefined]
+</pre>
+<br><br>
+
+<a name="Vector3D_Add"></a><b><span class=black>Vector3D.prototype.Add = function(vector)  </span></b>
+<br>
+Сложение 3D векторов. Функция возвращает новый вектор, получившийся в результате 
+сложения сложения векторов <code>this</code> и <code>vector</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector3D(3, 2, 1);
+var vecOut = vec.Add(new Vector3D(0, 1, 2)); // vecOut = [3, 3, 3]
+</pre>
+<br><br>
+
+<a name="Vector3D_Subtract"></a><b><span class=black>Vector3D.prototype.Subtract = function(vector)  </span></b>
+<br>
+Вычитание из вектора <code>this</code> вектора <code>vector</code>.  <br>
+Функция возвращает новый вектор, получившийся в результат вычитания.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector3D(2, 1, 0);
+var vecOut = vec.Subtract(new Vector3D(1, 0, 1));
+ // vecOut = [1, 1, -1]
+</pre>
+<br><br>
+
+<a name="Vector3D_Dot"></a><b><span class=black>Vector3D.prototype.Dot  =  function(vector)  </span></b>
+<br>
+ Скалярное произведение векторов <code>this</code> и <code>vector</code>.<br>  
+ Функция возвращает результат скалярного произведения.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec1 = new Vector3D(2, 1, 1);
+var vec2 = new Vector3D(4, 3, 2);
+var dot = vec1.Dot(vec2);      // dot = 13
+</pre>
+<br><br>
+
+<a name="Vector3D_Normer"></a><b><span class=black>Vector3D.prototype.Normer = function() </span></b>
+<br>
+Нормировка вектора <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+vec1 = new Vector3D(1, 1, 1);
+vec1.Normer();     // vec1 = [0.577.., 0.577.., 0.577..]
+vec2 = new Vector3D(3, 1, 1);
+vec2.Normer();     // vec2 = [0.0.904.., 0.301.., 0.301..]	
+</pre>
+<br><br>
+
+<a name="Vector3D_Angle"></a><b><span class=black>Vector3D.prototype.Angle = function(vector) </span></b>
+<br>
+Возвращает значение угла между векторами <code>this</code> и <code>vector</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+vec1 = new Vector3D(1, 1, 0);
+vec2 = new Vector3D(1, 1, 1);
+var degreeAng12 = (180 / Math.PI) * vec1.Angle(vec2); 
+ // degreeAng12 = 35.26438968275466°
+</pre>
+<br><br>
+
+<a name="Vector3D_Cross"></a><b><span class=black>Vector3D.prototype.Cross = function(vector) </span></b>
+<br>
+Возвращает вектор, являющийся векторным произведением векторов <code>this</code> и <code>vector</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+vec1 = new Vector3D(1, 0, 0);
+vec2 = new Vector3D(0, 1, 0);
+vecOut = vec1.Cross(vec2); // vecOut = [0, 0, 1]
+</pre>
+<br><br>
+
+
+<a name="Vector3D_Rot"></a><b><span class=black>Vector3D.prototype.Rotate = function(rot) </span></b>
+<br>
+Функция возвращает вектор <code>this</code> повернутый 
+на величину определяемую матрицей <code>rot</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+Пример 1:
+vec = new Vector3D(1, 0, 0);
+var teta = Math.PI/2;
+var mat = new Matrix3D(Math.cos(teta), -Math.sin(teta), 0,
+                       Math.sin(teta),  Math.cos(teta), 0,
+                       0,          0,                   1);
+					   
+var vecOut = vec.Rotate(mat); // vecOut = [0, 1, 0]
+
+Пример 2:
+vec = new Vector3D(1, 0, 0);
+var teta = Math.PI/2;
+var mat = new Matrix3D(  Math.cos(teta),   Math.sin(teta),  0,
+                         0,                1,               0,
+                        -Math.sin(teta),   0,               Math.cos(teta));
+						
+var vecOut = vec.Rotate(mat); // vecOut = [0, 0, -1]
+
+Пример 3:
+vec = new Vector3D(0, 1, 0);
+var teta = Math.PI/2;
+var mat = new Matrix3D(1, 0,               0,
+                       0, Math.cos(teta), -Math.sin(teta),
+                       0, Math.sin(teta),  Math.cos(teta));
+					   
+var vecOut = vec.Rotate(mat); // vecOut = [0, 0, 1]	  
+</pre>
+<br>
+
+<h3 align = "left"> &emsp;&emsp; 3D матрицы.</h3>
+
+<a name="Matrix3D"></a><b><span class=black>function Matrix3D(m0x,  m0y,  m0z,  m1x , m1y,  m1z,  m2x,  m2y,  m2z) </span></b>
+<br>
+Функция-конструктор трехмерных матриц <code>Matrix3D</code>.<br>
+<code>&emsp;&emsp;&emsp;m0x  m1x  m2x<br>
+      &emsp;&emsp;&emsp;m0y  m1y  m2y<br>
+      &emsp;&emsp;&emsp;m0z  m1z  m2z<br></code>
+
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+Пример 1:
+var mat = new Matrix3D(0,1,2, 3,4,5, 6,7,8);  	
+  // mat = [0,1,2]
+  //       [3,4,5]
+  //       [6,7,8]
+  
+Пример 2:
+var mat = new Matrix3D();
+ // mat = [undefined, undefined, undefined]
+ //       [undefined, undefined, undefined]
+ //       [undefined, undefined, undefined]
+</pre>
+<br><br>
+
+<a name="Matrix3D_Det"></a><b><span class=black>Matrix3D.prototype.Det = function() </span></b>
+<br>
+Функция возвращает величину определителя матрицы.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+Пример 1:
+var mat = new Matrix3D(-1, 2, -3, 
+                        4, 5,  6,
+                        7, 8, -9);
+var det = mat.Det();  // det = 258	  
+
+Пример 2:
+var mat = new Matrix3D();
+var det = mat.Det();  // det = null
+</pre>
+<br><br>
+
+<a name="Matrix3D_Inverse"></a><b><span class=black>Matrix3D.prototype.Inverse = function() </span></b>
+<br>
+Инверсия исходной матрицы <code>this</code>. <br>
+Функция возвращает обратную матрицу к матрице <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+Пример 1:
+var mat1 = new Matrix3D(1,  2,  3,
+                        4,  5,  6,
+                        7, -8, -9);
+// обратная матрица
+var inv1 = mat1.Inverse(); 
+  
+// умножение обратной матрицы на исходную дает единичную матрицу
+var mat = inv1.MultiplyTwoMatrices(mat1);   
+ // mat = [1, 0, 0]
+ //       [0, 1, 0]
+ //       [0, 0, 1]
+ 
+Пример 2:
+// детерминат матрицы mat равен 0
+var mat = new Matrix3D(1,1,1, 1,1,1, 1,1,1); // det = 0
+var inv = mat.Inverse();   // inv = null
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_MultiplyMatrixVector"></a><b><span class=black>Matrix3D.prototype.MultiplyMatrixVector = function(vector) </span></b>
+<br>
+Возвращает вектор, полученный путем умножения матрицы <code>this</code> 
+на вектор <code>vector</code>.<br>
+&emsp;&emsp;&emsp; <code>vecOut = this * vector</code>
+
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+vec = new Vector3D(1, 0, 0);
+var teta = Math.PI/2;
+var mat = new Matrix3D(Math.cos(teta), -Math.sin(teta), 0,
+                       Math.sin(teta),  Math.cos(teta), 0,
+                       0,               0,              1);
+var vecOut = mat.MultiplyMatrixVector(vec); // vecOut = [0, 1, 0]
+</pre>
+<br><br>
+
+
+
+<a name="Matrix3D_MultiplyTwoMatrices"></a><b><span class=black>Matrix3D.prototype.MultiplyTwoMatrices = function(mat)  </span></b>
+<br>
+Возвращает матрицу, полученную путем умножения матрицы <code>this</code> 
+на матрицу <code>mat</code>.<br>
+&emsp;&emsp;&emsp; <code>matOut = this * mat</code>
+
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat1 = new Matrix3D(1, 2, 3,
+                        5, 6, 7,
+                        0, 1, 2); 
+						
+var mat2 = new Matrix3D(0.5,  6,  7,
+                          4,  1,  2,
+                          3,  2,  1);   
+						  
+var out = mat1.MultiplyTwoMatrices(mat2); 
+ // out = [17.5, 14, 14]
+ //       [47.5, 50, 54]
+ //       [  10,  5,  4]
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_Transpose"></a><b><span class=black>Matrix3D.prototype.Transpose = function(mat) </span></b>
+<br>
+ Возвращает транспонированную матрицу <code>mat</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(1, 2, 3,
+                       4, 5, 6,
+                       7, 8, 9);
+					   
+var tr = mat.Transpose(mat); // tr = [1, 4, 7]
+                             //      [2, 5, 8]
+                             //      [3, 6, 9]
+</pre>
+<br><br>
+
+<a name="Matrix3D_MatrixSetVectorInColumn"></a>
+<b><span class=black>Matrix3D.prototype.MatrixSetVectorInColumn = function(vec0,  vec1,  vec2)</span></b>
+<br>
+Устанавливает значения матрицы по столбцам,  
+где <code>vec0,  vec1,  vec2 - 3D</code> векторы
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec0 = new Vector3D(1, 2, 3);
+var vec1 = new Vector3D(4, 5, 6);
+var vec2 = new Vector3D(7, 8, 9);
+var mat = new Matrix3D();
+var out = mat.MatrixSetVectorInColumn(vec0, vec1, vec2);
+ // out = [1, 4, 7]
+ //       [2, 5, 8]
+ //       [3, 6, 9]
+</pre>
+<br><br>
+
+<a name="Matrix3D_MatrixSetVectorInRow"></a>
+<b><span class=black>Matrix3D.prototype.MatrixSetVectorInRow = function(vec0,  vec1,  vec2)</span></b>
+<br>
+Устанавливает значения матрицы по рядам, 
+где  <code>vec0,  vec1, vec2 - 3D</code> векторы
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec0 = new Vector3D(1, 2, 3);
+var vec1 = new Vector3D(4, 5, 6);
+var vec2 = new Vector3D(7, 8, 9);
+var mat = new Matrix3D();
+var out = mat.MatrixSetVectorInRow(vec0, vec1, vec2);
+ // out = [1, 2, 3]
+ //       [4, 5, 6]
+ //       [7, 8, 9]	
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_UnitaryMatrix"></a><b><span class=black>Matrix3D.prototype.UnitaryMatrix = function()</span></b>
+<br>
+Функция устанавливает компоненты матрицы <code>this</code> равными компонентам единичной матрицы.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D();
+var unitMat = mat.UnitaryMatrix();
+// mat = [1, 0, 0]
+//       [0, 1, 0]
+//       [0, 0, 1]
+// unitMat = [1, 0, 0]
+//           [0, 1, 0]
+//           [0, 0, 1]
+
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_InvertMatrixMultiply"></a>
+<b><span class=black>Matrix3D.prototype.InvertMatrixMultiply = function (vector)</span></b>
+<br>
+Функция возвращает инвертированную матрицу <code>this</code> умноженную на вектор <code>vector</code>.<br> 
+Данная функция используется в функции <code>IntersectionThreePlanes</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(-3, 0, 2, 
+                        3, -1, 0,
+                       -2,  0, 1);
+var vec = new Vector3D(1, 2, 3);
+var vecOut = mat.InvertMatrixMultiply(vec);
+	// vecOut = [-5, -17, -7]
+	// инвертированная матрица = [1,  0, -2]
+	//                           [3, -1, -6]
+	//                           [2,  0, -3]
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_RotX"></a><b><span class=black>Matrix3D.prototype.RotX = function(angle) </span></b>
+<br>
+Матрица поворота вокруг оси <b>X</b> на угол <b>angle</b>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotX(Math.PI/2);      // заполнение компонент матрицы
+// поворот вектора [0, 1, 0] вокруг оси X на 90°
+var vecOut = mat.MultiplyMatrixVector(new Vector3D(0, 1, 0));
+//  vecOut = [0, 0, 1]
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_RotY"></a><b><span class=black>Matrix3D.prototype.RotY = function(angle)</span></b>
+<br>
+Матрица поворота вокруг оси <b>Y</b> на угол <b>angle</b>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotY(Math.PI/2); // заполнение компонент матрицы
+// поворот вектора [1, 0, 0] вокруг оси Y на 90°
+var vecOut = mat.MultiplyMatrixVector(new Vector3D(1, 0, 0));
+//  vecOut = [0, 0, -1]
+</pre>
+<br><br>
+
+<a name="Matrix3D_RotZ"></a><b><span class=black>Matrix3D.prototype.RotZ  =  function(angle)</span></b>
+<br>
+Матрица поворота вокруг оси <b>Z</b> на угол <b>angle</b>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotZ(Math.PI/2); // заполнение компонент матрицы
+// поворот вектора [1, 0, 0] вокруг оси Z на 90°
+var vecOut = mat.MultiplyMatrixVector(new Vector3D(1, 0, 0));
+//  vecOut = [0, 1, 0]	
+</pre>
+<br><br>
+
+
+<a name="Matrix3D_SetRotateMatrix"></a><b>
+<span class=black>Matrix3D.prototype.SetRotateMatrix = function(vector1,  vector2,  vector3)</span></b>
+<br>
+Установка компонент матрицы вращения (установка компонент матрицы <code>this</code>) 
+по трем векторам  <code>vector1, vector2</code> и <code>vector3</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec1 = new Vector3D(1, 1, 0);
+var vec2 = new Vector3D(0, 2, 2);  
+var vec3 = new Vector3D(3, 0, 3);
+var mat = new Matrix3D();
+mat.SetRotateMatrix(vec1, vec2, vec3);
+// mat = [0.70710.., 0.70710.., 0]
+//       [0,         0.70710.., 0.70710..]
+//       [0.70710.., 0,         0.70710..]
+
+</pre>
+<br><br>
+
+<h3 align = "left"> &emsp;&emsp; 3D точки.</h3>
+
+<a name="Point3D"></a><b><span class=black>function Point3D(x,  y,  z)</span></b>
+<br>
+ Функция-конструктор <b>3D</b> точки <code>Point3D</code>, 
+ где  <code>x, y, z</code> - координаты точки.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+var point1 = new Point2D(2, 1, 3); // point1 = [2, 1, 3]
+var point2 = new Point3D();
+//  point2 = [undefined, undefined, undefined]
+</pre>
+<br><br>
+
+<a name="Point3D_Add"></a><b><span class=black>Point3D.prototype.Add = function(point)</span></b>
+<br>
+Функция возвращает точку, являющюся суммой двух точек <code>this</code> и <code>point</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(1,  2,  3);
+var pt2 = new Point3D(4, -3, -7); 
+var ptOut = pt1.Add(pt2);  // ptOut = [5, -1, -4]
+</pre>
+<br><br>
+
+
+<a name="Point3D_Translate">
+</a><b><span class=black>Point3D.prototype.Translate  =  function(vector)</span></b>
+<br>
+Возвращает точку <code>this</code> перенесенную на вектор <code>vector</code>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(1,  2,  3);
+var pt2 = new Point3D(4, -3, -7); 
+var ptOut = pt1.Add(pt2);  // ptOut = [5, -1, -4]
+</pre>
+<br><br>
+
+<a name="Point3D_Distance"></a>
+<b><span class=black>Point3D.prototype.Distance = function(point)</span></b>
+<br>
+Возвращает расстояние между точкой <code>this</code> и точкой <code>point</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(1, 1, 1);
+var pt2 = new Point3D(2, 2, 2);
+var dist = pt1.Distance(pt2);
+ // dist = 1.7320508075688772
+</pre>
+<br><br>
+
+<a name="Point3D_Rotate"></a><b><span class=black>Point3D.prototype.Rotate = function(rot)</span></b>
+<br>
+ Функция возвращает точку <code>this</code>, повернутую матрицей <code>rot</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotY(Math.PI/2);      // заполнение компонент матрицы поворота
+// поворот точки с координатами [1, 0, 0] вокруг оси Y на 90°
+var pt = new Point3D(1, 0, 0);
+var ptOut = pt.Rotate(mat);
+//  ptOut = [0, 0, -1]
+</pre>
+<br><br>
+
+
+<a name="Point3D_SquareTriangle"></a><b><span class=black>function SquareTriangle(point1,  point2,  point3)</span></b>
+<br>
+Функция возвращает площадь треугольника заданного точками <code>point1, point2</code>, и <code>point3</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(1,0,0);
+var pt2 = new Point3D(0,1,0);
+var pt3 = new Point3D(0,0,1);
+var square = SquareTriangle(pt1, pt2, pt3);
+//  square = 0.8660254037844386
+</pre>
+<br><br>
+
+
+<h3 align = "left"> &emsp;&emsp; 3D прямые</h3>
+
+<a name="Line3D"></a><b><span class=black>function Line3D(point1, point2)</span></b>
+<br>
+Функция создает новую прямую в пространстве по двум <code>точкам point1</code> и <code>point2</code>. 
+<br>
+Создаваемая прямая определяется своими направляющими косинусоми и точкой,
+принадлежащей прямой.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Примеры:</span></b>
+1. var line1 = new Line3D(); 
+// directCos = [undefined, undefined, undefined]                        
+// pointOnLine = [undefined, undefined, undefined] 
+ 
+2. var line2 = new Line3D(new Point3D(1, 1, 1), new Point3D(1, 0, 0));
+// directCos =  [0, -0.7071067811865475, -0.7071067811865475]
+// pointOnLine = [1, 1, 1]
+
+</pre>
+<br><br>
+
+
+<a name="Line3D_CreateLineVectorPoint"></a><b>
+<span class=black>Line3D.prototype.CreateLineVectorPoint = function(vector, point)</span></b>
+<br>
+Функция создает прямую в пространстве направленную вдоль 
+вектора <code>vector</code> и проходящую через точку <code>point</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector3D(1, 1, 1);
+var point = new Point3D(1, 0, 0);
+var line = new Line3D();
+var lineOut = line.CreateLineVectorPoint(vec, point);
+//  lineOut = line
+//  directCos = [0.577.., 0.577.., 0.577..]
+//  pointOnLine = [1, 0, 0]
+</pre>
+<br><br>
+
+<a name="Line3D_Rotate"></a><b><span class=black>Line3D.prototype.Rotate  =  function(rot)</span></b>
+<br>
+ Функция вращает прямую <code>this</code> в пространстве посредством матрицы <code>rot</code>
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotY(Math.PI/2);      // заполнение компонент матрицы поворота для
+                          // поворота прямой line вокруг оси Y на 90°
+var line = new Line3D(new Point3D(1, 0, 0), new Point3D(0, 0, 0));
+// directCos = [-1, 0, 0]
+// pointOnLine = [1, 0, 0]
+line.Rotate(mat);	
+// directCos = [0, 0, 1]
+// pointOnLine = [0, 0, -1]
+
+</pre>
+<br><br>
+
+<a name="Line3D_Angle"></a>
+<b><span class=black>Line3D.prototype.Angle = function(line)</span></b>
+<br>
+Функция возвращает угол между векторами определяющими направления прямой <code>this</code>   
+и прямой <code>line</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var line1 = new Line2D(new Point3D(0, 0, 0), new Point2D(0, 1, 1));
+var line2 = new Line2D(new Point3D(0, 0, 0), new Point2D(1, 1, 1));
+var degreeAng12 = (180 / Math.PI) *  line1.Angle(line2);	
+ // degreeAng12 = -45°
+</pre>
+<br><br>
+
+<h3 align = "left"> &emsp;&emsp; 3D плоскость</h3>
+
+<a name="Plane3D"></a><b><span class=black>function Plane3D(norm, dist)</span></b>
+<br>
+Функция-конструктор трехмерной плоскости.<br>
+Плоскость задается вектором нормали к плоскости <code>norm</code> и расстоянием
+<code>dist</code> от начала координат.  <br>
+Данная функция используется только для создания заготовки (объявления) плоскости. 
+Конкретные параметры плоскости задаются с помощью функций 
+<br>
+<code>CreatePlaneThreePoints,  CreatePlaneNormalVectorPoint,  
+CreatePlaneVectorTwoPoints,  CreateInclinePlane</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+// directCos = [undefined, undefined, undefined]
+// distOXYZ = undefined
+</pre>
+<br><br>
+
+<a name="Plane3D_Normer"></a><b><span class=black>Plane3D.prototype.Normer = function()</span></b> 
+<br>
+ Нормировка уравнения плоскости.  Данная функция используется внутри функций
+<br> 
+<code>CreatePlaneThreePoints, CreatePlaneNormalVectorPoint, CreatePlaneVectorTwoPoints, CreateInclinePlane</code>.
+
+<br><br>
+
+
+<a name="Plane3D_CreatePlaneThreePoints"></a>
+<b><span class=black>Plane3D.prototype.CreatePlaneThreePoints = function(point1, point2, point3)</span></b>
+<br>
+Функция создает плоскость проходящую через три точки 
+<code>point1,  point2</code> и <code>point3</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(1, 5, 2);
+var pt2 = new Point3D(4, 2, 6);
+var pt3 = new Point3D(3, 1, 3);
+var plane = new Plane3D();
+plane.CreatePlaneThreePoints(pt1, pt2, pt3);
+// directCos = [0.8571.., 0.3296.., -0.3956..]
+// distOXYZ = 1.7143892..
+</pre>
+<br><br>
+
+<a name="Plane3D_CreatePlaneNormalVectorPoint">
+</a><b><span class=black>Plane3D.prototype.CreatePlaneNormalVectorPoint = function(vector, point)</span></b>
+<br>
+Создание плоскости по ее нормальному вектору и точке, принадлежащей плоскости.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector3D(1, 1, 1);
+var pt = new Point3D(1, 0, 0);
+var plane = new Plane3D();
+plane.CreatePlaneNormalVectorPoint(vec, pt);
+   // directCos = [0.5773.., 0.5773.., 0.5773..]
+   // distOXYZ = 0.5773502691896258
+</pre>
+<br><br>
+
+<a name="Plane3D_CreatePlaneVectorTwoPoints">
+</a><b><span class=black>Plane3D.prototype.CreatePlaneVectorTwoPoints = function(vector, point1, point2)</span></b>
+<br>
+Создание плоскости по вектору <code>vector</code>, параллельному плоскости,
+и двум точкам <code>point1</code> и <code>point2</code>, принадлежащим плоскости.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var vec = new Vector3D(0, -1, 1);
+var pt1 = new Point3D(0, 1, 0);
+var pt2 = new Point3D(1, 0, 0);
+var plane = new Plane3D();   
+var pl = plane.CreatePlaneVectorTwoPoints(vec, pt1, pt2);
+ // pl = plane
+ // directCos = [0.5773.., 0.5773.., 0.5773..]
+ // distOXYZ = 0.5773502691896258
+</pre>
+<br><br>
+
+<a name="Plane3D_CreatePlaneNormalDistOXYZ">
+</a><b><span class=black>Plane3D.prototype.CreatePlaneNormalDistOXYZ = function(norm, dist)</span></b>
+<br>
+Функция создает плоскость по направляющему вектору <code>norm</code> 
+и расстоянию от начала координат <code>dist</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var Z0 = new Vector3D(0, 0, 1);
+var plane = new Plane3D();
+plane.CreatePlaneNormalDistOXYZ(Z0, 4.0);
+  // directCos = [0, 0, 1]
+  // distOXYZ = 4
+</pre>
+<br><br>
+
+<a name="Plane3D_IntersectionThreePlanes">
+</a><b><span class=black>Plane3D.prototype.IntersectionThreePlanes = function(plane2, plane3)</span></b>
+<br>
+Функция возвращает точку пересечения плоскости <code>this</code> 
+с плоскостями <code>plane2</code> и <code>plane3</code>. 
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane1 = new Plane3D();
+plane1.CreatePlaneThreePoints(new Point3D(1,1,0), 
+                              new Point3D(1,1,1),  
+                              new Point3D(0,1,1));
+var plane2 = new Plane3D();
+plane2.CreatePlaneThreePoints(new Point3D(1,1,0), 
+                              new Point3D(1,1,1),  
+                              new Point3D(1,0,1));
+var plane3 = new Plane3D();
+plane3.CreatePlaneThreePoints(new Point3D(1,1,1), 
+                              new Point3D(1,0,1),  
+                              new Point3D(0,0,1));
+var point = plane1.IntersectionThreePlanes(plane2, plane3);
+ // point = [1, 1, 1]
+</pre>
+<br><br>
+
+<a name="Plane3D_VectorIntersectionTwoPlanes"></a>
+<b><span class=black>Plane3D.prototype.VectorIntersectionTwoPlanes = function(plane)</span></b>
+<br>
+Функция возвращает вектор, имеющий направление прямой по которой пересекаются 
+плоскости <code>this</code> и <code>plane</code>. 
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane1 = new Plane3D();
+plane1.CreatePlaneThreePoints(new Point3D(1,1,0), 
+                              new Point3D(1,1,1), 
+                              new Point3D(0,1,1));
+var plane2 = new Plane3D();
+plane2.CreatePlaneThreePoints(new Point3D(1,1,1), 
+                              new Point3D(1,0,1), 
+                              new Point3D(0,0,1));
+var vec = plane1.VectorIntersectionTwoPlanes(plane2);
+//  vec = [1, 0, 0]
+</pre>
+<br><br>
+
+<a name="Plane3D_Rotate"></a>
+<b><span class=black>Plane3D.prototype.Rotate = function(rot)</span></b>
+<br>
+Функция при помощи матрицы <code>rot</code> вращает плоскость <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+plane.CreatePlaneThreePoints(new Point3D(1,1,1), 
+                             new Point3D(1,0,1), 
+                             new Point3D(0,0,1));
+// directCos = [0, 0, -1]
+// distOXYZ = -1 
+var mat = new Matrix3D(); // создание (объявление) матрицы
+mat.RotX(Math.PI/2); // заполнение компонент матрицы
+// поворот плоскости plane вокруг оси X на 90°
+plane.Rotate(mat);
+   // directCos = [0, 1, 0]
+   // distOXYZ = -1 
+var dist = plane.DistancePoint(new Point3D(0, 0, 0));
+ // dist = 1
+
+</pre>
+<br><br>
+
+<a name="Plane3D_DistancePoint"></a>
+<b><span class=black>Plane3D.prototype.DistancePoint = function(point)</span></b>
+<br>
+Функция возвращает расстояние от точки <code>point</code> до плоскости <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+//  Создаем плоскость проходящую перпендикулярно оси OZ на расстоянии // равным 1 от начала координат.
+plane.CreatePlaneThreePoints(new Point3D(1,1,1), 
+                             new Point3D(1,0,1), 
+                             new Point3D(0,0,1));
+//  Создаем две точки point1 и point2 находящиеся на одинаковом  
+// расстоянии по абсолютной величине от плоскости plane но по разные 
+// стороны от этой плоскости. 
+var point1 = new  Point3D(0, 0, 3);
+var dist1 = plane.DistancePoint(point1); // dist1 = -2
+var point2 = new  Point3D(0, 0, -1);
+var dist2 = plane.DistancePoint(point2); // dist2 = 2
+// Значения расстояний dist1 и dist2 различаются своими знаками.
+
+</pre>
+<br><br>
+
+<a name="Plane3D_Slope"></a><b><span class=black>Plane3D.prototype.Slope = function()</span></b>
+<br>
+Функция возвращает угол между плоскостью <code>this</code> и плоскостью <code>OXY</code>. 
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane1 = new Plane3D();
+plane1.CreatePlaneThreePoints(new Point3D(1,1,1),                  
+                              new Point3D(1,0,1),                           
+                              new Point3D(0,0,1));
+var ang1 = (180 / Math.PI) * plane1.Slope();
+//  ang1 = 0° 
+var plane2 = new Plane3D();
+plane2.CreatePlaneThreePoints(new Point3D(0, 0, 0),                    
+                              new Point3D(0.5, 0, 1),                   
+                              new Point3D(1, 1, 1));
+var ang2 = (180 / Math.PI) * plane2.Slope();
+//  ang2 = 65.90515744788931° 
+var plane3 = new Plane3D();
+plane3.CreatePlaneThreePoints(new Point3D(0, 0, 0),                       
+                              new Point3D(-0.5, 0, -1),               
+                              new Point3D(1, 1, -1));
+var ang3 = (180 / Math.PI) * plane3.Slope();
+//  ang3 = -74.49864043306299°
+</pre>
+<br><br>
+
+<a name="Plane3D_Angle"></a>
+<b><span class=black>Plane3D.prototype.Angle = function(plane)</span></b>
+<br>
+Функция возвращает угол между плоскостью <code>this</code> и плоскостью <code>plane</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane1 = new Plane3D();
+plane1.CreatePlaneThreePoints(new Point3D(0, 0, 0), 
+                              new Point3D(1,0,1), 
+                              new Point3D(1,1,1));
+var plane2 = new Plane3D();
+plane2.CreatePlaneThreePoints(new Point3D(0, 0, 0),                 
+                              new Point3D(1,0,1), 
+                              new Point3D(1,0,0));
+var ang = (180 / Math.PI) * plane1.Angle(plane2);
+ // ang = 90°
+</pre>
+<br><br>
+
+<a name="Plane3D_Normal"></a>
+<b><span class=black>Plane3D.prototype.Normal = function()</span></b>
+<br>
+Функция возвращает вектор перпендикулярный к плоскости <code>this</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+plane.CreatePlaneThreePoints(new Point3D(1,1,3), 
+                             new Point3D(1,0,3), 
+                             new Point3D(0,0,3));
+var normal = plane.Normal(); // normal = [0, 0, -1]
+</pre>
+<br><br>
+
+<a name="Plane3D_Distance"></a>
+<b><span class=black>Plane3D.prototype.Distance = function()</span></b>
+<br>
+ Функция возвращает расстояние от плоскости <code>this</code> до начала координат.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+plane.CreatePlaneThreePoints(new Point3D(1,1,3), 
+                             new Point3D(1,0,3), 
+                             new Point3D(0,0,3));
+var dist = plane.Distance(); // dist = -3
+</pre>
+<br><br>
+
+<a name="Line3D_IntersectionLinePlane"></a><b><span class=black>Line3D.prototype.IntersectionLinePlane = function(plane)</span></b>
+<br>
+Функция возвращает точку пересечения прямой <code>this</code> с плоскостью <code>plane</code>.
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var plane = new Plane3D();
+plane.CreatePlaneThreePoints(new Point3D(1,1,3), 
+                             new Point3D(1,0,3), 
+                             new Point3D(0,0,3));
+var line = new Line3D(new Point3D(2, 3, -4), new Point3D(2, 3, -6));
+var point = line.IntersectionLinePlane(plane);
+//  point = [2, 3, 3]
+</pre>
+<br><br>
+
+<a name="Plane3D_CreateInclinePlane"></a><b>
+<span class=black>Plane3D.prototype.CreateInclinePlane = function(angle, point1, point2, point3)</span></b>
+<br>
+Данная функция создает плоскость наклоненную относительно плоскости <code>OXY</code> на угол <code>angle</code>.
+<br>  
+Точки <code>point1</code> и <code>point2</code> должны иметь одинаковое значение 
+координаты <b>Z</b> (<code>pt1[2] = pt2[2]</code>). 
+Рассчитывается двумерный вектор <b>norm2d</b> и затем определяется  плоскость 
+имеющая наклон <b>angle</b> к плоскости <b>OXY</b>.                                                                    
+Данная функция делает то же самое что и функция <code>Facet</code>, 
+но в ней в отличие от функции <code>Facet</code>, используется наследование через прототипы.
+<br>  
+Для лучшего понимания работы функции ниже приведен ее текст:
+
+<pre class="prettyprint" id="quine">
+Plane3D.prototype.CreateInclinePlane = function(angle, pt1, pt2, pt3)                                                
+{ 
+    var norm2d = new Vector2D(pt1[1] - pt2[1], pt2[0] - pt1[0]);
+    norm2d.Normer();
+    var x = Math.sin(angle) * norm2d[0];
+    var y = Math.sin(angle) * norm2d[1];
+    var z = Math.cos(angle);
+    var normPlaneVector = new Vector3D(x, y, z);
+    normPlaneVector.Normer();
+    this.CreatePlaneNormalVectorPoint(normPlaneVector, pt3);
+    this.Normer();
+}
+</pre>
+Рассчитывается вектор <b>norm2d</b>, который задается точками с координатами <b>pt1</b> и <b>pt2</b>.
+Затем определяется  плоскость имеющая наклон <b>angle</b> к плоскости <b>OXY</b>.  
+Для определения уравнения этой плоскости вычисляется 
+<b>3D</b>-вектор  <b>normPlaneVector</b>, который имеет угол наклона к горизонтальной 
+плоскости <code>OXY</code> равный величине угла <b>angle</b>.  
+Проекции этого вектора на горизонтальную плоскость определяется вектором <b>norm2d</b> 
+и синусом угла <b>angle</b>. Для искомой плоскости 
+вектор <b>normPlaneVector</b> принимается в качестве нормального вектора.   
+Этой плоскости принадлежит точка <b>pt3</b>.  Если искомая плоскость проходит через
+точки <b>pt1</b> и <b>pt2</b> то в качестве <b>pt3</b> можно взять одну
+из этих двух точек. Но часто бывает так, что искомая плоскость не проходит
+через точки <b>pt1</b> и <b>pt2</b>, хотя и задается при помощи вектора проходящего
+через эти точки. В этом случае необходимо задать точку <b>pt3</b> исходя
+из того как должна располагаться искомая плоскость.
+Следует учесть, что вектор <b>normPlaneVector</b> может быть повернут 
+на угол <b>angle</b> относительно отрезка, соединяющего точки <b>pt1</b> и <b>pt2</b> двумя способами.
+<br>
+В качестве примера можно взять построение граней короны многогранника 
+<b><a href="../Octagon/Chapter_05.html" target="_blank">Octagon</a></b>
+примыкающих к рундисту. В этой огранке эти грани направлены как бы "внутрь рундиста". 
+Поэтому точки <b>pt1</b> и <b>pt2</b> в параметрах функции  заданы  
+вполне  определенным  способом:
+   для <b>A0</b> -  "<b>7</b> и <b>0</b>",
+   для <b>A1</b> -  "<b>0</b> и <b>1</b>", 
+   для <b>A2</b> -  "<b>1</b> и <b>2</b>",    
+
+(для того, чтобы увидеть нумерацию вершин огранки следует нажать кнопку <b>Crown-Gd.-Pav.</b>):
+<pre class="prettyprint" id="quine">
+	var A0 = new Plane3D(); 
+	A0.CreateInclinePlane(angle_A0, girdle[7], girdle[0], girdle[7]);
+	
+	// Закоментированные варианты также позволяют получить <b>правильное</b> построение грани A0.
+//	A0.CreateInclinePlane(-angle_A0, girdle[0], girdle[7], girdle[7]);
+//	var A0 = Facet(angle_A0, girdle[7], girdle[0], girdle[7]);
+//	var A0 = Facet(-angle_A0, girdle[0], girdle[7], girdle[7]);
+	
+	var A1 = new Plane3D(); 
+	A1.CreateInclinePlane(angle_A0, girdle[0], girdle[1], girdle[0]);
+	var A2 = new Plane3D(); 
+	A2.CreateInclinePlane(angle_A0, girdle[1], girdle[2], girdle[1]);	
+</pre>
+Если изменить выбор пар точек, например,  осуществить выбор точек для грани 
+<b>A0</b>  так, как показано ниже, то эта грань будет построена не так как ожидалось:
+<pre class="prettyprint" id="quine">
+   var A0 = new Plane3D();
+   A0.CreateInclinePlane(angle_A0, girdle[0], girdle[7], girdle[7]);
+</pre>
+
+<br><br>
+
+
+<a name="Facet"></a><b><span class=black>function Facet(angle,point1, point2, point3)</span></b>
+<br>
+Данная функция делает то же самое что и функция  <code>CreateInclinePlane</code>, 
+но в ней не используется наследование через прототипы и она возвращает созданную этой функцией плоскость. 
+Предполагается, что точки <b>pt1</b> и <b>pt2</b> имеют одинаковую величину координаты <b>Z</b> 
+(<code>pt1[2] = pt2[2]</code>).
+Рассчитывается двумерный вектор <b>norm2d</b> и затем определяется  возвращаемая плоскость 
+имеющая наклон <b>angle</b> к плоскости <b>OXY</b>. <br>    
+<pre class="prettyprint" id="quine">
+<b><span class=blue2>Пример:</span></b>
+var pt1 = new Point3D(0,0,4);
+var pt2 = new Point3D(2,1,4)
+var pt3 = new Point3D(0.5, 0.5, 6.0)
+var plane = Facet(Math.PI/4, pt1, pt2, pt3);
+// directCos = [ -0.31622.., 0.63245.., -0.70710..]
+// distOXYZ = -4.084526804110867
+</pre>
+<br>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+</h3>
+
+</body>
+</html>

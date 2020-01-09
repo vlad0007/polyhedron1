@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 7 - Octagon (part 3)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type="text/javascript" src="../libs/three.js"></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src = "../libs/OrbitControls.js"></script>
+	<script src = "../libs/WebGeometry.js"></script>
+	<script src = "../libs/polyhedron.js"></script>
+	<script src = "octagon_verts_3.js"></script>
+	<script src = "octagon_3.js"></script>
+	<style>
+		#div_out
+		{
+			position: relative;
+			width: 1007px;
+			height: 425px;
+			left: 0px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+		#div_in
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 610px;
+			width: 995px;
+			background-color: #eeffee;
+			border: solid 2px;
+		}
+		#div_pars
+		{
+			position: absolute;
+			left: 505px;
+			top: 2px;			
+			height: 415px;
+			width: 230px;
+			background-color: #eeeeaa;
+			border: solid 2px;
+		}
+		#gui_container
+		{
+			position: absolute;
+			left: 745px;
+			top: 5px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_06.html"> <span class=brown>Глава 6 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="Chapter_08.html"> <span class=brown> Глава 8  </span></a>
+</h3>
+
+<h2 align = "center"> Three.js и геометрия. &ensp; Глава 7. &ensp;  Многогранник октагон (часть 3)</h2>
+
+<p>
+Создадим вариант огранки октагон в котором корона сделана точно также как и в главе <b>6</b>, но павильон построен
+немного иначе. Из <b>СДМ</b> уберем параметр <code>angle_E</code>, задающей наклон граней 
+<b>E0 - E7</b>. Вместо этого параметра в <b>СДМ</b> добавим параметр <code>hMiddleFacet</code>, 
+который будет задавать глубину на которой должны лежать вершины <b>0 - 7</b> павильона. 
+</p>
+
+<code>
+&emsp;&emsp;&emsp;&emsp; var plane_MiddleFacet = new Plane3D();<br>
+&emsp;&emsp;&emsp;&emsp; plane_MiddleFacet.CreatePlaneNormalDistOXYZ(Z1, -r/2 - hp * hMiddleFacet);<br>
+</code>
+<br>
+<p>
+Затем создадим с помощью функции <code>CreateInclinePlane</code> восемь плоскостей в которых лежат грани <b>D0 - D7</b>.<br>
+Переменная <code>planes_up</code> - определяет массив в котором храненятся эти плоскости.
+</p>
+<pre class="prettyprint" id="quine">
+	var planes_up = [8];
+	// Отдельно создаем плоскость в которой лежит грань D0
+	var D0 = new Plane3D();
+	D0.CreateInclinePlane(angle_D, girdle[9], girdle[15], girdle[8]);
+	planes_up[0] = D0;
+	var D7 = new Plane3D();
+	D7.CreateInclinePlane(angle_D, girdle[8], girdle[14], girdle[15]); 
+	planes_up[7] = D7;
+	
+	// создаем плоскости (planes_up) в которых лежат грани D1 - D6
+	for (i = 1; i < 7; i++)
+	{	
+		var plane = new Plane3D();
+		plane.CreateInclinePlane(angle_D, girdle[8 + i + 1], girdle[8 + i - 1], girdle[8 + i]);
+		planes_up[i] = plane;
+	}
+</pre>
+<p>
+Вершины павильона <b>0 - 7</b> находим как точки пересечения трех плоскостей. Это плоскости в которых лежат 
+грани <b>D0 - D7</b> и горизонтальная плоскость <code>plane_MiddleFacet</code>:
+</p>
+<pre class="prettyprint" id="quine">
+	pavil[0] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[0], planes_up[7]);
+	pavil[1] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[1], planes_up[0]);
+	pavil[2] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[2], planes_up[1]);
+	pavil[3] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[3], planes_up[2]);
+	pavil[4] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[4], planes_up[3]);
+	pavil[5] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[5], planes_up[4]);
+	pavil[6] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[6], planes_up[5]);
+	pavil[7] = plane_MiddleFacet.IntersectionThreePlanes(planes_up[7], planes_up[6]);
+</pre>
+<p>
+Координаты вершин <b>8 - 15</b> павильона определим следующим образом - найдем плоскости в которых
+лежат грани <b>D0 - D7</b> а затем определим рассчитаем точки пересечения плоскостей лежащих на 
+двух нижних ярусах павильона - <b>D</b> и <b>E</b>.
+Плоскости граней <b>E0 - E7</b> расчитываются также как и для <em>Octagon</em> в первом варианте.
+Вот как, напомним, опредляется плоскость для <b>E0</b>:
+</p>
+<pre class="prettyprint" id="quine">
+	// Создаем два вектора a0 и b0. Их векторное произведение определит нормальный вектор плоскости E0.
+	var a0 = new Vector3D(pavil[16][0] - pavil[0][0], pavil[16][1] - pavil[0][1], pavil[16][2] - pavil[0][2]);
+	var b0 = new Vector3D(girdle[8][0] - girdle[15][0], girdle[8][1] - girdle[15][1], 0);
+	var vec_E0 = a0.Cross(b0); // вектор перпендикулярный к плоскости E0 
+	vec_E0.Normer();
+	var E0 = new Plane3D(); 
+	E0.CreatePlaneNormalVectorPoint(vec_E0, pavil[16]);
+</pre>	
+А вот и сам расчет вершин:
+<pre class="prettyprint" id="quine">
+    // Вершины 8, 9, 10, 11, 12, 13, 14, 15 павильона
+	// массив planes_up предназначен для D0 - D7
+	pavil[8]  = planes_up[0].IntersectionThreePlanes(E0, E1);
+	pavil[9]  = planes_up[1].IntersectionThreePlanes(E1, E2);
+	pavil[10] = planes_up[2].IntersectionThreePlanes(E2, E3);
+	pavil[11] = planes_up[3].IntersectionThreePlanes(E3, E4);
+	pavil[12] = planes_up[4].IntersectionThreePlanes(E4, E5);
+	pavil[13] = planes_up[5].IntersectionThreePlanes(E5, E6);
+	pavil[14] = planes_up[6].IntersectionThreePlanes(E6, E7);
+	pavil[15] = planes_up[7].IntersectionThreePlanes(E7, E0);	
+</pre>
+<br>
+<div id="div_out">  
+
+		<canvas id="canvas" width="500" height="422" style="border: 1px solid"></canvas>
+		
+		<div id="div_pars" >
+			<canvas id="canvas_pars" width="230" height="380"></canvas>
+			<div id="div_input">
+				                     <input type="radio" name="numeration" id = "btn_no"  />No
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_all" />All
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_cr_gd_pav"  />Cr-Gd-Pav
+			</div>		
+		</div>
+
+		<div id="gui_container" ></div> 
+	
+</div>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_06.html"> <span class=brown>Глава 6 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="Chapter_08.html"> <span class=brown> Глава 8  </span></a>
+</h3>
+
+</body>
+</html>

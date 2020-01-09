@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 2 - Pyramid (part 2)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type="text/javascript" src="../libs/three.min.js"></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src = "../libs/OrbitControls.js"></script>
+	<script src = "../libs/WebGeometry.js"></script>
+	<script src = "../libs/polyhedron.js"></script>
+	<script src = "pyramid_2.js"></script>
+	<style>	
+		#div_out_light
+		{
+			position: relative;
+			width: 615px;
+			height: 282px;
+			left: 5px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+	
+		#div_in_light
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 270px;
+			width: 600px;
+			background-color: #eeffee;
+			border: solid 2px;
+		}
+		
+		#gui_container_light
+		{
+			position: absolute;
+			left: 330px;
+			top: 0px;
+		}	
+	</style>
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_01.html"> <span class=brown>Глава 1 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span></a><a href="../Plane/Chapter_03.html"> <span class=brown> Глава 3  </span></a>
+</h3>
+<br>
+<h2 align = "center"> 
+<span class=brown>Three.js и геометрия.</span> &emsp; 
+Глава 2 &emsp; Разбор программы предназначенной для отображения 3D-модели</h2>
+<p>
+В предыдущей части для модели пирамиды мы создали два массива данных - 
+<code>plgs</code> и <code>faces</code>. Покажем как на их основе 
+при помощи библиотеки <b>three.js</b> сделать работающую программу отображения 3D-модели.
+Программу отображения можно сделать как на отдельной странице, так и на странице содержащй
+другую информацию - так как это представлено в предыдущей части. 
+<a href="Pyramid_page.html" target="_blank"><b>Программа отображения модели пирамиды на отдельной странице</b></a>.
+В обоих вариантах основная часть кода имеет одинаковый вид и отличается главным образом только в тех
+частях, которые относятся к заданию и выводу на экран значений параметров модели.
+Рассмотрим как происходит вывод в браузер программы прдставленной в предыдущей части.
+</p>
+
+<h3 align = "center"> Компоновка на web-странице программы отображения модели</h2>
+<p>
+Вывод будем осуществлять в web-элементе <b>div_out</b> (рисунок <b>1</b>). Этот блок имеет <i>относительное</i> 
+(<i>relative</i>) позиционирование в <i>нормальным потоке</i> элементов на web-странице. 
+Внутри него расположим элемент типа canvas (и дадим ему такое же имя canvas) для отображения трехмерной 
+модели пирамиды. Для этого элемента будет использоваться специальный <b>WebGL</b> контекст для трехмернного 
+рисования модели. В блоке <b>div_pars</b>, имеющем <i>абсолютное</i> позиционирование относительно блока 
+<b>div_out</b>, расположим другой элемент типа canvas с именем canvas_pars. Этот элемент определим для 
+вывода значений параметров модели и другойсопутствующей информации. 
+В отличие от предыдущего элемента canvas, этот элемент canvas_pars предназначен
+для использования в нем двумерного контекста. В правой части блока <b>div_out</b> расположим блок 
+<b>gui_container</b> предназначенный для изменения значений параметров модели. 
+Этот блок относительно <b>div_out</b> имеет <i>абсолютное</i> позиционирование. 
+</p>
+<p>
+В блоке расположена панель управления использующая специальную библиотеку <b>dat.GUI</b>.
+Описание работы <b>dat.GUI</b> можно найти в интернете по адресу  .
+Обычно в примерах использования панель <b>dat.GUI</b> помещается в правой части web-страницы.
+В отличие от этого, в данной программе панель размещена в специально для нее отведенным блоке <b>div</b>.
+</p>
+
+<p>
+</p>
+<img src = "figure_2_1.png" class="center-img-rounded" border = "2px" >
+
+<p>
+Отображение на экран осуществляется при помощи библиотеки <b>three.js</b> и необходимо подключить ее
+и некоторые другие модули к программе. Скачать библиотеку и дополнительные модули (в том числе
+<b>OrbitControls.js</b>, который используется для осмотра модели пирамиды с разных сторон) 
+можно по <a href="https://threejs.org/">ссылке</a>. 
+Библиотека three.js предоставляется в двух видах - в виде полного не сжатого текста (<b>three.js</b>) 
+и в виде минимизированного текста из которого убраны пробелы.(<b>three.min.js</b>). 
+Использовать можно любой вариант. В интернете можно найти очень много 
+примеров использования данной библиотеки. Поэтому рассмотрим использование ее компонентов весьма кратко
+и обратим внимание только на ключевые для нас моменты. Исходный текст программы с комментариями
+находится в файле <b>pyramid_1.js</b>. 
+</p>
+
+<h3 align = "center"> Функция init</h2>
+<p>
+После того как web-страница загружена возникает событие <b><code>onload</code></b> в котором вызывается 
+функция <b><code>init</code></b>. Ее блок-схема представлена на рисунке <b>2</b>. 
+<img src = "figure_2_2.png" class="center-img-rounded" border = "2px" >
+Во процессе работы данной функции создаеся <i>сцена</i> (<span class=jp>scene</span>), 
+<i>камера</i>(<span class=jp>camera</span>), <i>визуализатор</i> (<span class=jp>renderer</span>).
+и <span class=jp>orbitControl</span> который позволяет производить обход и осмотр модели со всех сторон. 
+Дополнительно создается <span class=jp>raycaster</span> для выбора и изменения цвета конкретной 
+грани модели путем наведения на нее указателя мыши. Эти пять объектов входят как стандартные
+в библиотеку <b>three.js</b>. 
+<pre class="prettyprint" id="quine">	
+    canvas = document.getElementById("canvas");
+	
+    // Создаем трехмерную сцену, перспективную камеру и рендерер
+    scene = new THREE.Scene();
+
+    // Создаем перспективную камеру.
+    camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 1000);
+    camera.position.x = 5;
+    camera.position.y = 10;
+    camera.position.z = -20;
+    camera.lookAt(new THREE.Vector3(0, 0, 0));	
+    scene.add(camera);
+
+    // Создаем renderer
+    renderer = new THREE.WebGLRenderer({canvas: canvas});
+    renderer.setClearColor(0xEEEEEE, 1.0);
+    renderer.setSize(canvas.width, canvas.height);
+
+    // Элемент управления дающий возможность осматривать модель пирамиды со всех сторон.
+    orbitControl = new THREE.OrbitControls(camera, canvas);
+    raycaster = new THREE.Raycaster();
+
+    // Создаем холст HTML5 на который будем выводить 
+    // вспомогательную информацию (например значения параметров).
+    hud = document.getElementById("canvas_pars");
+    ctx = hud.getContext('2d');
+    if (!ctx) 
+    {
+       console.log('Failed to get rendering context');
+       return;
+    }	
+</pre>
+
+Для задания значений параметров, как отмечалось ранее, используется библиотека <b>dat.GUI</b>
+и созданный на ее основе объект <code>dat.GUI</code>.
+В объекте <b>controller</b> определяем свойства для параметров модели и их начальные значения:
+<pre class="prettyprint" id="quine">
+    controller = new function() 
+    {
+      this.lw = 1.2;
+      this.r = 0.06;
+      this.hCrown = 0.3;
+      this.t = 0.6;
+      this.hp = 0.6;
+      this.anglePav = Math.atan(hp/0.5) / DEGREE;
+      this.model_width = 1.0;
+      this.totalHt = hCrown + r + hp;   
+      this.totalHtFix = hCrown + r + hp;
+      this.enumeration = false;
+    }();
+</pre>
+<p>
+Кроме свойств для параметров изначально задающих форму и размер модели, также входят свойства для 
+трех вычисляемых параметров - <code>anglePav</code>, <code>totalHt</code> и <code>totalHtFix</code>, 
+а также <code>enumeration</code>.
+После этого мы создаем <b>JavaScript</b> объект, который будет анализировать свойства, которые мы хотим изменить, 
+используя библиотеку <b>dat.GUI</b>:
+<pre class="prettyprint" id="quine">
+  // Создаем новый объект dat.GUI.
+  var gui = new dat.GUI({ autoPlace: false });
+  gui.domElement.id = 'gui';
+  gui_container.appendChild(gui.domElement);
+	
+  var f1 = gui.addFolder('Girdle'); // создаем папку для параметров рундиста
+  f1.add(controller, 'lw', 0.5, 4.0).onChange( function() 
+  {
+       // в папке создаем поле для параметра lw
+       orbitControl.enabled = false;
+       lw = controller.lw;
+       recalc();
+  });
+  f1.add(controller, 'r', 0.01, 2).onChange( function() 
+  {
+       // в папке создаем поле для параметра r
+       orbitControl.enabled = false;
+       r = controller.r;
+       recalc();   
+	});
+
+  var f2 = gui.addFolder('Crown'); // создаем папку для параметров короны
+  f2.add(controller, 'hCrown', 0.05, 0.9).onChange( function() 
+  {
+       // в папке создаем поле для параметра hCrown
+       orbitControl.enabled = false;
+       hCrown = controller.hCrown;
+       recalc();		
+  });
+  ....................................
+  ....................................
+  // В объект dat.GUI добавляем свойство 'enumeration' для нумерации вершин модели
+  gui.add( controller, 'enumeration', false ).onChange( function() 
+  {
+      enumeration = controller.enumeration; 
+      if (enumeration == true) // переключатель да / нет
+      {
+         if (numbers.length == 0)
+         {
+            // если нумерации еще нет то создаем ее
+            create_num_vertices();
+         }
+         for(i = 0; i < numbers.length; i++) 
+         {
+            // выводим на экран нумерацию вершин модели
+            scene.add(numbers[i]);	
+         }
+      }
+      else
+      {
+         for(i = 0; i < numbers.length; i++) 
+         {
+            // убираем с экрана нумерацию вершин модели
+            scene.remove(numbers[i]);	
+         }
+      }
+  });
+</pre>
+Для каждой 3D-модели очень важное значение имеет область пределов, в которой значения параметров
+могут изменяться без того, чтобы модель стала некорректной. Например очевидно, что в модели пирамиды 
+значения параметров не могут меньше нуля. Углы наклона граней короны не должны превышать или быть равной
+90°. Но обычно очень важно просто ограничить значения величин некоторых параметров исходя из 
+практических соображений. Например, поэтому мы ограничиваем значения параметра <code>lw</code> 
+интервалом от <code>0.5</code> до <code>4.0</code> следующим образом:
+<br>
+<code>
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; f1.add(controller, 'lw', <b>0.5, 4.0</b>).onChange( function() 
+</code>
+<br>
+&nbsp;&nbsp; Однако иногда простым ограниченим значений параметров обойтись не удается. Например все 
+модели многогранников должны быть выпуклыми. Это связано с тем, что многогранники, модели
+которых мы будем создовать, представляют собой огранки драгоценных камней.  
+Ко всем огранкам предъявляется обязательное требование выпуклости.  Исключением из этого правила
+являются <em>рундисты</em> некоторых огранок. Но у таких огранок корона и павильон все равно должны быть выпуклыми. 
+Примером таких огранок является огранка с рундистом выполненым в виде сердца. 
+Для проверки выпуклости создается специальная функция.
+
+<p>
+Проверка выпуклости производится следующим образом. Через каждую грань проводится плоскость, 
+в которой эта грань лежит, и затем определяется положение каждой вершины модели относительно этой плоскости. 
+Все вершины должны быть расположены по одну и ту же сторону от этой плоскости. Если это условие выполняется,
+то модель признается корректной. В противном случае  модель признанается некорректной, и производится 
+возвращение к исходному значению измененного параметра а затем модель снова перестраивается. 
+Для моделей огранок имеющих невыпуклый рундист (только этот элемент некоторых огранок, 
+таких как <em>Heart</em>, может быть невыпуклым) проверка выпуклости 
+производится отдельно для короны и отдельно для павильона. Рундист, при этом, исключается из проверки. 
+</p>
+<pre class="prettyprint" id="quine">
+// Функция проверки того правильно ли построена модель огранки.
+// В данном случае это проверка того является ли построенная 3D модель выпуклой.
+function isCorrect()
+{
+	var i, j;
+	// Проходим по всем граням модели 
+	for (i = 0; i < plgs.length; i++)
+	{
+		var plg = plgs[i]; 
+		var face3 = plg.IndexTriangle[0];
+
+		var ind1 = face3.a;
+		var ind2 = face3.b;
+		var ind3 = face3.c;
+		
+		var pt1 = new Point3D(points[ind1].x, points[ind1].y, points[ind1].z);
+		var pt2 = new Point3D(points[ind2].x, points[ind2].y, points[ind2].z);
+		var pt3 = new Point3D(points[ind3].x, points[ind3].y, points[ind3].z);
+
+		var plane = new Plane3D();
+		plane.CreatePlaneThreePoints(pt1, pt2, pt3);
+		
+		// Проходим по всем вершинам модели 
+		for (j = 0; j < points.length; j++)
+		{
+			var pt_test = new Point3D(points[j].x, points[j].y, points[j].z);
+			var dist = plane.DistancePoint(pt_test);
+			if (dist > 0.000001)
+			{
+				// невыпуклая модель
+				return -1;
+			}
+		}
+	}
+}
+</pre>
+</p>
+
+<h3 align = "center"> Функция create_meshes</h2>
+
+Вернемся к рассмотрению работы функции <code>init</code>. После создания <code>dat.GUI</code> вызывается функция
+<code>create_meshes</code>. Последовательно в ней выполняются следующие действия:
+<ol>
+  <li><p>Предварительная очистка используемых массивов</p></li>
+  <li><p>Рассчитываются координаты вершин 3D-модели функцией VerticesCalculation</p></li>
+  <li><p>Создается топология модели функцией CreatePolyhedron</p></li>
+  <li><p>Вывод на холст hud значений параметров.</li>
+  <li><p>Из массива vertices создается массив координат вершин в виде (x, y, z)</p></li>
+  <li><p>Задается цвет каждой грани</p></li>
+  <li><p>Для <i>каждой</i> грани модели создается отдельный меш</p></li>
+  <li><p>Для <i>каждой</i> грани модели создается отдельный массив ребер окаймляющих эту грань</p></li>
+</ol>
+<p>
+Рассмотрим подробнее пункт <b>5</b> из этого списка. В массиве <code>vertices</code> полученной с помощью функции
+<code>VerticesCalculation</code> все значения координат вершин модели хранятся подряд <code>x, y, z, x, y, z, ... </code>.
+Поэтому каждые три последовательные значения, соответствующие одной вершшине модели из массива <code>vertices</code>  
+должны быть переведен в координаты <code>x, y, z</code> вершины модели с типом <code>THREE.Vector3</code> и помещены
+в массив <code>points</code>. <code>kf</code> - это масштабный множитель для полигонов из которых состоят грани при их отображении. 
+Про выбор его величины будет сказано дальше.
+<pre class="prettyprint" id="quine">
+	for (i = 0; i < vertices.length/3; i++)
+	{
+		var point3 = new THREE.Vector3();
+		for (j = 0; j < 3; j++)
+		{
+			point3.x = kf * vertices[el];
+			point3.y = kf * vertices[el + 1];
+			point3.z = kf * vertices[el + 2];
+		}
+		points.push(point3);
+		el = el + 3;
+	}
+</pre>
+</p>
+
+<p>
+В рассматриваемой программе исползуются объекты (<em>меши</em>) двух видов. Один - для отображеня самих граней,
+а другой для отображения ребер окаймляющих каждую грань.
+</p>
+
+<p>
+Для <i>каждой</i> грани создаем свой собственный отдельный объект - <em>меш</em>. Все эти созданные объекты, 
+каждый из которых определяет одну граиь модели, помещаются в массив <code>meshes</code>. Для каждой грани
+используется материал <code>THREE.MeshBasicMaterial</code> с цветом определенным в файле <b>pyramid_colors.js</b> для
+этой грани.
+<pre class="prettyprint" id="quine">
+  for (i = 0; i < plgs.length; i++) // цикл по всем граням
+  {
+     var geometry = new THREE.Geometry();
+     // координаты (geometry.vertices) требуемых вершин для faces берутся 
+     // из общего массива вершин points для всех граней модели
+     geometry.vertices = points;
+     var plg = plgs[i]; 
+     var index_triangle = plg.IndexTriangle; 
+     // грань может состоять из нескольких треугольников
+     for (var j = 0; j < index_triangle.length; j++)
+     {
+        index_triangle[j].color = colors[i]; // цвет всех треугольников
+        // на которые разбита грань один и тот же и определяется
+        // цветом всей грани из файла pyramid_colors.js
+     }
+     // определяем свойство faces объекта geometry 
+     geometry.faces = index_triangle; 
+     // присоединив ранее к index_triangle цвет грани, 
+     // мы присоединили его теперь и к geometry.faces
+     // используем для меша стандартный материал THREE.MeshBasicMaterial
+     var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors } );
+     var mesh = new THREE.Mesh(geometry, material);	
+     mesh.index = i; // используется при индикации номера грани модели
+     meshes.push(mesh);	
+  }	
+</pre>
+</p>
+
+<p>
+После того, как нарисовали 3D-модель огранки и раскрасили цвета ее граней, 
+для лучшего зрительного восприятия модели желательно прорисовать все ее видимые ребра
+при помощи прямых линий.
+С этой целью создается <em>проволочный экземпляр</em> 3D-модели и накладывается на модель
+с раскрашенными гранями. Проволочный экземпляр 3D-модели должен быть на очень 
+малую величину больше по размеру, чем модель с гранями. В этом случае
+задние части проволочной модели будут закрыты моделью с гранями, а передние
+ее части окажутся видимыми. Тем самым наблюдатель будет воспринимать пирамиду
+как единую 3D модель с видимыми передними для него ребрами и невидимыми задними.
+Для реализации этой возможности коэффициент <code>kf_edges</code> для проволочный модели
+берется на очень малую величину большим, чем коэффициент <code>kf</code> используемый 
+при отображения раскрашенных граней.
+</p>
+<pre class="prettyprint" id="quine">
+  // Создаем материал при помощи которого будут прорисовываться ребра 3D-модели.
+  // THREE.LineBasicMaterial позволяет прорисовать ребра прямыми линиями.
+  var material_line = new THREE.LineBasicMaterial({ color: 0x000000 });
+  // Для каждой грани создаем отдельный массив ребер которые окаймляют эту грань.	
+  for (i = 0; i < plgs.length; i++) // цикл по всем граням модели
+  {
+     var geometry_line = new THREE.Geometry();
+     var points_line = [];
+     var facet = plgs[i].VertexFacet;
+     for (j = 0; j < facet.vertexes.length; j++) // цикл по вершинам текущей грани
+     {
+        var vert = facet.vertexes[j];
+        //  при помощи коэффициента kf_edges увеличиваем размер модели относительно 
+		// исходного ее размера
+        var point3 = new THREE.Vector3(kf_edges * vert[0], kf_edges * vert[1], kf_edges * vert[2]);
+        points_line.push(point3);
+     }
+     geometry_line.vertices = points_line;
+     var mesh_line = new THREE.Line(geometry_line, material_line);
+     edges.push(mesh_line);
+  }	
+</pre>
+
+По завершении создания всех 3D-объектов (<em>мешей</em>), функция <code>init</code>, 
+которая вызывала для этого <code>create_meshes</code>, выводит объекты на экран, 
+устанавливает обработчик события <code>mousemove</code> и вызывает функцию 
+производящую отображение сцены на экран (<code>render</code>):
+
+<pre class="prettyprint" id="quine">
+	// Вывод на сцену массива полигонов представляющих собой грани модели.
+	for(var i = 0; i < meshes.length; i++) 
+	{
+		scene.add(meshes[i]);	
+	}
+	
+	// Вывод на сцену общего массива окаймляющих грани ребер модели.
+	for(var i = 0; i < edges.length; i++) 
+	{
+		scene.add(edges[i]);	
+	}
+
+	// Установка обработчика события mousemove для выбора граней модели
+	canvas.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	
+	// Отображение сцены на экран.
+	render();	
+</pre>
+На этом функция <code>init</code> завершает свою работу.
+
+<h3 align = "center"> Вывод информации о модели в отдельное окно</h2>
+<p>
+Значения параметров, координаты вершин модели, индикация номера выбранной грани отображаются на
+на холсте <code>canvas_pars</code>. Если мы обратимся к приведенной выше блок-схеме, то увидим, что это отображение 
+осуществляется в функции <code>create_meshes</code> после того как рассчитаны все координаты вершин модели.
+Для вывода этой информации используется функция <code>pars_value</code>, которая стандартными методами холста
+<b>canvas HTML5</b> выводит текст на экран. Для форматирования числовых значений используется функция 
+<code>roundNumber</code>:
+<pre class="prettyprint" id="quine">
+function roundNumber(num, places) 
+{
+  return ( Math.round(num * Math.pow(10, places)) / Math.pow(10, places) );
+}
+</pre>
+
+Перед выводом очередной порции информации холст подвергается очистке в функции <code>recalc</code>:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <code><span class=jp> ctx.clearRect(0, 0, hud.width, hud.height);</span> </code>
+</p>
+
+<h3 align = "center"> Функция recalc</h2>
+<p>
+Если значение какого-либо параметра изменилось то требуется пересчитать координаты
+модели и вывести на экран ее новую перестроенную форму и новые значения сопутствующей информации.
+<pre class="prettyprint" id="quine">
+function recalc()
+{
+  var i;
+  // Убираем со сцены полигоны.
+  for(i = 0; i < meshes.length; i++) 
+  {
+     var mesh = meshes[i];
+     scene.remove(mesh);	
+  }
+  // Убираем со сцены ребра.
+  for(i = 0; i < edges.length; i++) 
+  {
+     scene.remove(edges[i]);	
+  }				
+  // Создаем новые полигоны и ребра и выводим их на сцену.
+  create_meshes();
+  for(i = 0; i < edges.length; i++) 
+  {
+     scene.add(edges[i]);	
+  }	
+  for(i = 0; i < meshes.length; i++) 
+  {
+     scene.add(meshes[i]);	
+  }
+
+  // Очищаем холст и затем выводим на него новые значения параметров,
+  // а также дополнительную информацию.
+  ctx.clearRect(0, 0, hud.width, hud.height);
+  pars_value();
+  create_num_vertices();
+}
+</pre>
+</p>
+
+<h3 align = "center"> Функция create_num_vertices</h2>
+<p>
+Если поставаить "<em>галочку</em>" в поле <code>enumeration</code> находящемся на панели <b>GUI</b>, то рядом 
+с вершинами модели появятся номера этих вершин. Функция, которая осуществляет это действие имеет следующий вид:
+<pre class="prettyprint" id="quine">
+// нумерация вершин модели
+function create_num_vertices()
+{
+  for(i = 0; i < numbers.length; i++) 
+  {
+    scene.remove(numbers[i]); // предварительная очистка от старого текста
+  }
+  numbers.length = 0;
+
+  var x, y, z;
+  var ind = 0;
+  var number = 0;
+  var n = vertices.length / 3; // количество вершин модели
+
+  // вывод номеров вершин на экран
+  for (i = 0; i < n; i++) 
+  {
+    // координаты текущей вершины
+    for (j = 0; j < 3; j++)
+    {
+      x = vertices[ind];
+      y = vertices[ind + 1];
+      z = vertices[ind + 2];
+    }
+
+    // Создание текста соответствующего номеру текущей вершины
+    // Текст - это объект типа меш (mesh), у которого предком
+    // является THREE.Object3D.
+    var meshText = new THREE.Object3D();
+
+    meshText.add(
+     // присоединяем к объекту meshText
+     // текст "номер грани" (3D-модель с закрашенными гранями) и делаем его видимым
+     new THREE.Mesh(
+       new THREE.Geometry(),
+       new THREE.MeshBasicMaterial({color:   0x000000, // черный цвет номера 
+                                    side:    THREE.DoubleSide, 
+                                    shading: THREE.FlatShading})));
+    meshText.children[0].visible = true; // делаем видимым
+
+    generateGeometry( meshText, number.toString() );
+
+    // Так как у meshText предком является Object3D, 
+    // от которого наследуются все объекты попадающие на сцену, и 
+    // он отвечает за геометрическое положение объектов в пространстве
+    // то мы можем помещать текст на экране в требуемое место и масштабировать его.
+    // (трансформации примененные к верхнему уровню иерархии объектов
+    //   применяются ко всем элементам лежащим ниже)
+    meshText.scale.set(0.07, 0.07, 0.07);	
+    if ( (ind / 3) < 8 ) 
+    { // для вершин с положительной координатой z
+       z = z + 0.02; // смещение относительно координаты вершины
+       meshText.position.set(kf*x, kf*y, kf*z);
+    }
+    else
+    { // для вершин с отрицательной координатой z
+       z = z - 0.02; // смещение относительно координаты вершины
+       meshText.position.set(kf*x, kf*y, kf*z);
+       meshText.rotation.x = Math.PI; //    для удобства
+       meshText.rotation.z = Math.PI; // зрительного воспрятия			
+    }
+    numbers.push(meshText);
+    ind = ind + 3;
+    number = number + 1;
+  }	
+  for(i = 0; i < numbers.length; i++) 
+  {
+     scene.add(numbers[i]);	
+  }
+}
+</pre>
+</p>
+
+<p>
+В процессе выполнения <code>create_num_vertices</code> для создания текста, соответствующего номеру каждой вершины, 
+вызывает функцию <code>generateGeometry</code>. Она в свою очередь, в функции <code>create_text</code> задает парметры 
+выводимого на экран текста: 
+<pre class="prettyprint" id="quine">
+var loaderText = new THREE.FontLoader(); // загрузчик шрифтов
+
+// характеристики создаваемого текста
+function create_text(txt)
+{
+  var t =
+  {
+     text : txt,          // текст номера, который небходимо отобразить
+     size : 9,            // размер текста (высота символа)
+     height : 1,          // толщина текста
+     curveSegments : 12,  //      количество точек (сегментов) 
+                          //    кривой при рисовании буквы, 
+                          //    отвечающие за качество изображения
+    // font : "gentilis", // название шрифта
+     bevelEnabled : false // включение фаски (при true)
+  };	
+  return t;
+}
+	
+// Создание текста для оцифровки текущей вершины огранки.			
+function generateGeometry(meshText, text)
+{
+  var data = create_text(text);
+  loaderText.load
+  ( 
+     'gentilis_bold.typeface.js', // шрифт
+     function ( font ) 
+     {
+        var geometryText = new THREE.TextGeometry
+        ( 
+           data.text, 
+           {
+              font: font,
+              size: data.size,
+              height: data.height,
+              curveSegments: data.curveSegments,
+              bevelEnabled: data.bevelEnabled
+           } 
+        );
+        geometryText.center();
+        meshText.children[ 0 ].geometry.dispose(); 
+        meshText.children[ 0 ].geometry = geometryText;			
+     }
+  );
+}
+</pre>
+</p>
+
+<h3 align = "center"> Вывод на экран (render)  </h2>
+<p>
+В функции <code>render</code> при перемещении мыши по экрану, если ее указатель попадает на какую-либо грань
+огранки, происходит вывод номера этой грани в окне отображения информации. С этой целью создается
+объект <code>raycaster</code>. Для того, чтобы определить объекты, на которые попал указатель мыши, 
+нужно из камеры направить "<em>луч</em>" в точку где находится указатель и определить какию грань модели
+он пересекает или, вообще, "<em>луч</em>" проходит мимо модели. В массиве <code>intersects</code> хранится следующая 
+информация об объектах:
+<ol>
+  <li><p> object: объект, на котором находится указатель мыши</p></li>
+  <li><p> distance: расстояние до объекта </p></li>
+  <li><p> point: трехмерные координаты точки на объекте на которой находится указатель мыши</p></li>
+  <li><p> face: грань объекта - у нас объект состоит из одной грани - он сам "грань"</p></li>
+  <li><p> faceIndex: номер этой грани</p></li>
+</ol>
+Объекты находятся в массиве по порядку встречи с лучом (нумерация начинается с нуля).
+Поэтому объект, на котором находится указатель мыши, будет первым. 
+<pre class="prettyprint" id="quine">
+function render() 
+{
+  orbitControl.enabled = true;
+  raycaster.setFromCamera( mouse, camera );
+  
+  var intersects = raycaster.intersectObjects( meshes );
+  if ( intersects.length > 0 ) 
+  {
+     index = intersects[ 0 ].object.index;
+     old_color = intersects[ 0 ].object.material.color;
+
+     if ( (index != select_index)  )
+     {
+        if (select_index != -1)
+        {
+            meshes[select_index].material.color = old_color;
+        }
+     }
+     print_text_index(index);
+     meshes[index].material.color = new THREE.Color("rgb(250, 0, 0)");
+     select_index = index; // номер выбранной грани
+             // изначально ни одна грань не выбрана и select_index = -1
+	 
+     // координаты точки на которую наведена мышь
+     pointX = intersects[ 0 ].point.x;
+     pointY = intersects[ 0 ].point.y;
+     pointZ = intersects[ 0 ].point.z;
+     // отображение координат точки на экране
+     ........................................
+     ctx.fillText(...координаты...)
+     ........................................
+  }		
+
+  requestAnimationFrame(render);
+  renderer.render(scene, camera);
+}
+</pre>
+</p>
+
+<h3 align = "center"> Создание модели пирамиды в которой все грани объединены в один объект</h2>
+<p>
+Мы рассмотрели программу в которой грани 3D-модели (каждая грань модели) представляют собой 
+<em>отдельные объекты</em> (<code>mesh</code>). Ниже приведен работающий экземпляр программы, 
+в которой <em>все грани</em> пирамиды объединены в <em>единый объект</em>.
+В этом случае каждая грань этого объекта (не забываем, что используем библиотеку <b>three.js</b>) 
+представлена специальной структурой <code>Face3</code>.   
+</p>
+
+<div id="div_out_light">  
+
+	<div id="div_in_light" >
+		<canvas id="canvas" width="310" height="270" style="border: 1px solid"></canvas>
+		<div id="gui_container_light" ></div> 
+	</div>	
+	
+</div>
+<p>
+В предыдущей программе освещения не было и поэтому для всех граней модели был взят
+простейший материал <code>MeshBasicMaterial</code>.
+Расмотрим программу, в которой осуществлена подсветка модели. В нее с этой целью введено 
+несколько источников света. Они освещающают модель с разных сторон:
+
+<pre class="prettyprint" id="quine">
+
+    // первый источник света 
+    var spotLight1 = new THREE.SpotLight(0xff7700);
+    spotLight1.position.set(100, 0, 0);
+	scene.add(spotLight1);
+	
+	// второй источник света 
+    var spotLight2 = new THREE.SpotLight(0xff7700);
+    spotLight2.position.set(-100, 0, 0);
+	scene.add(spotLight2);
+	...............................................
+	...............................................
+</pre>
+</p>
+
+<p>
+При освещении модели используется либо 
+<code>MeshLambertMaterial</code> либо <code>MeshPhongMaterial</code>. <code>MeshPhongMaterial</code>
+в отличие от <code>MeshLambertMaterial</code> позволяет получить блики света на поверхности модели. 
+Для того, чтобы объекты на экране были не черными, а отражали свет, необходимо
+для граней объектов вычислить нормали. Как известно для 3D-моделей существует два типа нормалей.
+Это либо нормали в вершинах модели, либо нормали к плоскости поверхности в которой лежит грань.
+<p>
+Напомним, что нормаль вершины в вершине многогранника — это вектор, ассоциированный с вершиной, 
+предназначенный для замены истинной геометрической нормали к поверхности. Обычно нормаль 
+вычисляется как нормализованное среднее нормалей поверхностей граней, примыкающих к вершине.
+</p>
+<p>
+Создаем два объекта. Для одного объекта вычислим нормали к плоскости поверхности грани,
+при помощи функции <code>computeFaceNormals</code>.
+Для другого объекта вычислим нормали в вершинах модели используя для этого <code>computeVertexNormals</code>.
+Обе функции предоставляет в наше распоряжение библиотека <b>three.js</b>.
+Можно, конечно, расчитать нормальные векторы и вручную, 
+но библиотека <b>three.js</b> облегчает этот процесс, вызывая соответствующие методы 
+в классе <code>geometry</code>.
+</p>
+&nbsp;&nbsp;Объекты по очереди можно вывести на экран при помощи переключателя <code>flat</code>.
+
+<pre class="prettyprint" id="quine">
+	material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+	// material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+	
+	geometry1 = new THREE.Geometry();
+	geometry1.vertices = points;
+	geometry1.faces = faces;
+	geometry1.<b>computeFaceNormals()</b>;
+	mesh1 = new THREE.Mesh(geometry1, material);
+	scene.add(mesh1);
+	
+	geometry2 = new THREE.Geometry();
+	geometry2.vertices = points;
+	geometry2.faces = faces2;
+	geometry2.<b>computeVertexNormals()</b>;
+	mesh2 = new THREE.Mesh(geometry2, material);
+</pre>
+<p>
+Наблюдать за изменениями в освещении модели можно при помощи элемента управления "<b>Mesh rotation</b>" в GUI.
+Простой обход модели с помощью <b>OrbitControls.js</b> не меняет освещение граней пирамиды, так как это
+наблюдатель обходит вокруг модели, а сама модель остается неподвижной. Для того, чтобы увидеть изменение
+освещенности граней модели требуется осуществить ее вращение (или передвигать источники света).
+</p>
+<h3 align = "center"> Краткое резюме</h2>
+<p>
+В двух первых частях был построен очень простой многогранник похожий на пирамиду. 
+В дальнейшем по этой же методике построения мы будем создавать гораздо более сложные модели. 
+Для построения пирамиды не требовались никакие геометрические функции библиотеки <b>WebGeometry</b>.
+Но при построении других моделей все расчеты вершин многогранников будут производиться 
+исключительно с помощью функций этой библиотеки. В следующих двух главах будет рассмотрено
+применение функций <b>WebGeometry</b> предназначенных для построений на плоскости.
+И только после этого мы перейдем к созданию по-настоящему сложных моделей многогранников.
+</p>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_01.html"> <span class=brown>Глава 1 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span></a><a href="../Plane/Chapter_03.html"> <span class=brown> Глава 3  </span></a>
+</h3>
+
+</body>
+</html>

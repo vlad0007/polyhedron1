@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Chapter 6 - Octagon (part 2)</title>
+	<link rel="stylesheet" type="text/css" href="../libs/style.css">
+	<script src="../libs/run_prettify.js?autoload=true&amp;lang=css" defer=""></script>
+	<script type="text/javascript" src="../libs/three.js"></script>
+	<script type = "text/javascript" src = "../libs/dat.gui.js"></script>
+	<script src = "../libs/OrbitControls.js"></script>
+	<script src = "../libs/WebGeometry.js"></script>
+	<script src = "../libs/polyhedron.js"></script>
+	<script src = "octagon_verts_2.js"></script>
+	<script src = "octagon_2.js"></script>
+	<style>
+		#div_out
+		{
+			position: relative;
+			width: 1007px;
+			height: 425px;
+			left: 0px;
+			background-color: #aaffff;
+			border: solid 2px;
+		}
+		#div_in
+		{
+			position: absolute;
+			left: 5px;
+			top: 5px;			
+			height: 610px;
+			width: 995px;
+			background-color: #eeffee;
+			border: solid 2px;
+		}
+		#div_pars
+		{
+			position: absolute;
+			left: 505px;
+			top: 2px;			
+			height: 415px;
+			width: 230px;
+			background-color: #eeeeaa;
+			border: solid 2px;
+		}
+		#gui_container
+		{
+			position: absolute;
+			left: 745px;
+			top: 5px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_05.html"> <span class=brown>Глава 5 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="Chapter_07.html"> <span class=brown> Глава 7  </span></a>
+</h3>
+
+
+<h2 align = "center"> Three.js и геометрия. &ensp; Глава 6. &ensp; Многогранник октагон (часть 2)</h2>
+
+<p>
+Создадим еще один вариант многогранника октагон. Сделаем следующие изменения:
+</p>
+<p>
+В качестве рундиста будем использовать <em>правильный</em> восьмиугольник. Следовательно параметров
+<code>corner_break_angle</code> и <code>corner_break_ratio</code> в <b>СДМ</b> больше не будет.
+</p>
+<p>
+Введем возможность смещения в горизонтальной плоскости верхнего и нижнего ярусов короны. С этой
+целью в <b>СДМ</b> введем параметры <code>table_dx</code> и <code>table_dy</code> для изменения положения 
+верхнего яруса короны. Для изменения положения нижнего яруса введем параметры <code>h2h_dx</code> 
+и <code>h2h_dx</code>. Значение угла <code>angle_A0</code> будет задавать наклон сразу всех граней нижнего
+яруса короны, а значение угла <code>angle_B0</code> будет задавать наклон всех граней верхнего яруса.
+</p>
+<p>
+Объединим две треугольные грани <b>D0-1</b> и <b>D0-2</b> в одну четырехугольную грань <b>D0</b>. Также поступим с
+остальными гранями этого яруса павильона. Сделаем возможным смещения в горизонтальной плоскости калетты многогранника.
+Для этого введем в <b>СДМ</b> параметры <code>culet_dx</code> и <code>culet_dy</code>.
+Углы наклона граней <b>C0 - C7</b> больше задавать не будем, но будем задавать углы наклона граней <b>D1 - D7</b> 
+и граней <b>E0 - E7</b> при помощи параметров <code>angle_D</code> и <code>angle_E</code> соответственно.
+</p>
+<p> 
+</p>
+
+<p>
+
+<div id="div_out">  
+
+	
+		<canvas id="canvas" width="500" height="422" style="border: 1px solid"></canvas>
+		
+		<div id="div_pars" >
+			<canvas id="canvas_pars" width="230" height="380"></canvas>
+			<div id="div_input">
+				                     <input type="radio" name="numeration" id = "btn_no"  />No
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_all" />All
+				&nbsp&nbsp&nbsp&nbsp <input type="radio" name="numeration" id = "btn_cr_gd_pav"  />Cr-Gd-Pav
+			</div>		
+		</div>
+
+		<div id="gui_container" ></div> 
+	
+	
+</div>
+</p>
+
+<h3 align = "center"> Нумерация вершин граней модели</h3>
+<p>
+Нумерация вершин и обозначение граней модели приведены на рисунке <b>1</b>.  
+<img src = "figure_6_1.png" class="center-img">
+</p>
+
+<h3 align = "center"> Структура данных модели</h3>
+
+<p>
+ 
+<b>СДМ</b> многогранника <em>октагон</em> для данного варианта его построения включает в себя следующие параметры:
+</p>
+
+<pre class="prettyprint" id="quine">
+var DEGREE = 0.01745329251994; // величина углового градуса
+
+// Рундист
+var r = 0.02;             // толщина рундиста
+
+// Корона
+var hCrown = 0.21;        // высота короны
+var t = 0.3;              // размер площадки
+var angle_B = 39*DEGREE;  // верхний угол короны (одинаковый для для граней B0 - B7)
+var angle_A = 62*DEGREE;  // нижний угол короны (одинаковый для всех граней A0 - A7)
+var H2H = 0.5;            // Отношение высоты нижней части короны ко всей ее высоте
+var table_dx = 0.00001;   // смещение верхнего яруса короны по оси X
+var table_dy = 0.00001;   // смещение верхнего яруса короны по оси Y
+var h2h_dx = 0.00001;     // смещение нижнего яруса короны по оси X
+var h2h_dy = 0.00001;     // смещение нижнего яруса короны по оси Y
+
+// Павильон
+var hp = 0.67;            // глубина павильона
+var angle_D = 65*DEGREE;  // угол наклона граней D0 - D7
+var angle_E = 43*DEGREE;  // угол наклона граней E0 - E7
+var culet_dx = 0.00001;   // смещение калетты по оси X
+var culet_dy = 0.00001;   // смещение калетты по оси Y
+</pre>
+<p>
+Так как рундист является правильным восьмиугольником, то его ширина и длина равны по величине
+и поэтому параметр <code>lw</code> в <b>СДМ</b> отсутствует.<br>
+</p>
+
+
+<h3 align = "center"> Определение координат вершин рундиста</h3>
+<p>
+Расчет координат вершин граней модели как всегда начнем с рундиста. Рундист многогранника октагон показан на рисунке <b>2</b>. 
+Правильный восьмиугольник, в общих чертах, определяется следующим образом. 
+Построим квадрат <b>NPQR</b>. Затем строим квадрат <b>MJKL</b> повернутый
+относительно первого квадрата на <em>45</em> градусов. Точки пересечения квадратов определят положение вершин восьмиугольника.
+Исходный текст функции <code>InitGirdle</code> определяющий координаты вершин рундиста:
+</p>
+<pre class="prettyprint" id="quine">
+var girdle = [16]; // вспомогательный массив для хранения координат вершин рундиста
+.........................
+.........................
+function InitGirdle()
+{
+	// Координаты вершин рундиста.
+	var d = Math.sqrt(0.5*0.5 + 0.5*0.5); // distance OP
+	var line_JK = new Line2D(new Point2D(0.0, d), new Point2D(d, 0.0));
+	var line_NP = new Line2D(new Point2D(-0.5, 0.5), new Point2D(0.5, 0.5));
+	var line_QP = new Line2D(new Point2D(0.5, -0.5), new Point2D(0.5, 0.5));
+	var B = line_JK.IntersectionTwoLines(line_NP);
+	var C = line_JK.IntersectionTwoLines(line_QP);
+	
+	// используем свойство симметрии рундиста
+	girdle[0] =  new Point3D(B[0], B[1], r/2); 
+	girdle[1] =  new Point3D(C[0], C[1], r/2);  
+	girdle[2] =  new Point3D(  girdle[1][0], - girdle[1][1], r/2);
+	girdle[3] =  new Point3D(  girdle[0][0], - girdle[0][1], r/2);
+	girdle[4] =  new Point3D(- girdle[3][0],   girdle[3][1], r/2);
+	girdle[5] =  new Point3D(- girdle[2][0],   girdle[2][1], r/2);
+	girdle[6] =  new Point3D(- girdle[1][0],   girdle[1][1], r/2);
+	girdle[7] =  new Point3D(- girdle[0][0],   girdle[0][1], r/2);
+
+	girdle[8] =  new Point3D(  girdle[0][0], girdle[0][1], -r/2);
+	girdle[9] =  new Point3D(  girdle[1][0], girdle[1][1], -r/2);
+	girdle[10] = new Point3D(  girdle[2][0], girdle[2][1], -r/2);
+	girdle[11] = new Point3D(  girdle[3][0], girdle[3][1], -r/2);
+	girdle[12] = new Point3D(  girdle[4][0], girdle[4][1], -r/2);
+	girdle[13] = new Point3D(  girdle[5][0], girdle[5][1], -r/2);
+	girdle[14] = new Point3D(  girdle[6][0], girdle[6][1], -r/2);
+	girdle[15] = new Point3D(  girdle[7][0], girdle[7][1], -r/2);
+}
+</pre>
+
+<img src = "figure_6_2.png" class="center-img"> 
+
+<h3 align = "center"> Построение короны</h3>
+<p>
+Корона модели сотоит из граней расположенных на двух ярусах. При построении данного варианта многогранника 
+мы приняли допущение, что все грани как нижнего так и верхнего яруса многогранника имеют один и тот же угол
+наклона. Для нижнего яруса он задается параметром <code>angle_A</code>, а для верхнего - параметром <code>angle_B</code>.
+Обратимся к рисунку <b>3</b>. Из него видно что прямые являющиеся продолжением нижних граней короны пересекаются
+в точке <b>T</b>, а прямые являющиеся продолжением верхних граней - в точке <b>S</b>. Мы можем смещать 
+точку <b>T</b> в горизонтальной плоскости при помощи параметров <code>table_dx</code> и <code>table_dy</code> относительно
+исходного значения лежащего на оси <b>Z</b>. При помощи параметров <code>h2h_dx</code> и <code>h2h_dy</code> можно сместить
+в горизонтальной плоскости точку <b>S</b>.
+</p>
+<p>
+Проведем восемь прямых каждая из которых проходит через точку <b>T</b> и одну из восьми вершин рундиста <b>0 - 7</b>.
+Затем построим горизонтальную плоскость на уровне первого яруса граней короны. Тогда те точки, 
+в которых происходит протыкание прямыми этой плоскости, определят положение вершин короны <b>8 - 15</b>.
+</p>
+<p>
+Для нахождения вершин короны <b>0 - 7</b> поступим следующим образом. Сначала найдем четыре точки лежащие
+посередине отрезков соединяющих вершины короны <b>15</b> и <b>8</b>, <b>9</b> и <b>10</b>, <b>11</b> и 
+12, <b>13</b> и <b>14</b>. Через эти точки иточку <b>S</b> проведем четыре прямые. 
+Тогда точки протыкания этими прямыми горизонтальной плоскости, лежащей на уровне площадки, 
+определят положение вершин <b>0</b>, <b>2</b>, <b>4</b> и <b>6</b> короны.
+</p>
+<p>
+Проведем прямые через вершины <b>15</b> и <b>8</b> а также <b>9</b> и <b>10</b> короны (имеем в виду прекции этих прямых на
+горизонтальную плоскость). Затем проведем через точку пересечения этих прямых и точку <b>S</b> еще
+одну прямую. Тогда та точка, где эта последняя прямая проткнет плоскость, лежащую на уровне площадки,
+окажется тем самым местом где находится вершина <b>1</b> короны. Таким же образом найдем положение
+вершин <b>3</b>, <b>5</b> и <b>7</b> короны.
+</p>
+&nbsp;&nbsp;Ниже приведен исходный текст расчета положения вершин короны:
+<pre class="prettyprint" id="quine">
+	// Рассчитываем горизонтальную плоскость plane_H2H лежащую на высоте hCrown*H2H + r/2
+	var plane_H2H = new Plane3D();
+	plane_H2H.CreatePlaneNormalDistOXYZ(Z1, hCrown*H2H + r/2);	
+	
+	// точка T 
+	var upPoint1 = 0.5 * Math.tan(angle_A) + r/2;
+	var <b>T</b> = new Point3D(h2h_dx, h2h_dy, upPoint1);
+	
+	// рассчитываем координаты вершин короны 8 - 15 как 
+	// <a href="../libs/Help.html#Line3D_IntersectionLinePlane"  target="_blank"><span class=text3>точки пересечения прямой с плоскостью</span></a>
+	for (i = 0; i < 8; i++)
+	{
+		var line = new Line3D(T, girdle[i]);
+		crown[i+8] = line.IntersectionLinePlane(plane_H2H);
+	}
+
+	// Рассчитываем горизонтальную плоскость plane_Table лежащую на высоте площадки
+	var plane_Table = new Plane3D();
+	plane_Table.CreatePlaneNormalDistOXYZ(Z1, hCrown + r/2);	
+	
+	// точка S
+	var upPoint2 = crown[8][1] * Math.tan(angle_B) + hCrown*H2H + r/2;
+	var <b>S</b> = new Point3D(table_dx, table_dy, upPoint2);
+	
+	// Восемь вспомогательных точек для нахождения вершин короны лежащих на уровне площадки
+	var temp_points = [8];
+	temp_points[0] = new Point3D((crown[8][0] + crown[15][0]) / 2, (crown[8][1] + crown[15][1]) / 2, hCrown*H2H + r/2);
+	temp_points[1] = new Point3D((crown[9][0] + crown[8][0]) / 2, (crown[9][1] + crown[8][1]) / 2, hCrown*H2H + r/2);
+	temp_points[2] = new Point3D((crown[10][0] + crown[9][0]) / 2, (crown[10][1] + crown[9][1]) / 2, hCrown*H2H + r/2);
+	temp_points[3] = new Point3D((crown[11][0] + crown[10][0]) / 2, (crown[11][1] + crown[10][1]) / 2, hCrown*H2H + r/2);
+	temp_points[4] = new Point3D((crown[12][0] + crown[11][0]) / 2, (crown[12][1] + crown[11][1]) / 2, hCrown*H2H + r/2);
+	temp_points[5] = new Point3D((crown[13][0] + crown[12][0]) / 2, (crown[13][1] + crown[12][1]) / 2, hCrown*H2H + r/2);
+	temp_points[6] = new Point3D((crown[14][0] + crown[13][0]) / 2, (crown[14][1] + crown[13][1]) / 2, hCrown*H2H + r/2);
+	temp_points[7] = new Point3D((crown[15][0] + crown[14][0]) / 2, (crown[15][1] + crown[14][1]) / 2, hCrown*H2H + r/2);
+	
+	// рассчитываем координаты вершин короны 0 - 7
+	for (i = 0; i < 8; i++)
+	{
+		var line = new Line3D(S, temp_points[i]);
+		crown[i] = line.IntersectionLinePlane(plane_Table);
+	}	
+</pre>
+<p>
+В приведенной программе при наведении курсора мыши на конкретную грань в панели управления
+отображается наклон этой грани и ее азимут. Если при помощи параметров, задающих смещение точек <b>T</b> и <b>S</b>,
+изменить их положение то можно увидеть, что <em>азимуты</em> граней <b>A0 - A7</b> и <b>B0 - B7</b> не <em>изменятся</em>.
+Можно мысленно представить, что мы зажимаем пальцами виртуальные вершины <b>T</b> и <b>S</b> и двигаем 
+эти вершины влево, вправо, вперед и назад. Если допустить, что многогранник "пластичен", то мы увидим, 
+что будут меняться только наклоны граней короны, но направление линий пересечения плоскостей, 
+в которых они лежат, с горизонтальной плоскостью <b>OXY</b> (азимуты граней) не подвергнутся изменению.
+<p>
+
+<p>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Небольшое замечание</em>.<br>
+&nbsp;Может возникнуть вопрос - почему начальные значения смещений не равняются нулю, а заданы равными очень малой ведичине?
+В процессе работы над программой я обнаружил, что при исходном значении параметров точно равными нулю, при помощи 
+<b>dat.GUI</b> можно совершенно правильно менять значения параметров, но синий горизонтальный столбик в панели 
+управления почему-то соответствующим образом не изменяет своего размера, а остается неизменным по длине.
+Если задать исходные значения параметров не равными нулю, то все работает нормально.
+<p>
+
+
+<h3 align = "center"> Построение павильона</h3>
+<p>
+Построение павильона в данном варианте многогранника октагон осуществим следующим образом.
+На <em>первом</em> этапе определим плоскости в которых лежат четырехугольные грани <b>D0 - D7</b>.
+Азимут грани <b>D0</b> зададим по направлению прямой проходящей через вершины рундиста <b>9</b> и <b>15</b>,
+азимут грани <b>D1</b> - по направлению прямой проходящей через вершины рундиста <b>8</b> и <b>10</b>.
+Похожим образом зададим азимуты граней  <b>D2, D3, D4, D5, D6</b> и <b>D7</b>. 
+Наклон граней <b>D0 - D7</b> задается параметром (одним для всех этих граней) <code>angle_D</code>
+При определении плоскостей в которых лежат грани <b>D0 - D7</b> учтем, что эти плоскости проходят 
+через вершины рундиста <b>8 - 15</b>.
+<pre class="prettyprint" id="quine">
+	// верхние четырехугольные грани павильона D0 - D7
+	var planes_up = [8];
+	var D0 = new Plane3D();
+	D0.CreateInclinePlane(angle_D, girdle[9], girdle[15], girdle[8]);
+	planes_up[0] = D0;
+	var D7 = new Plane3D();
+	D7.CreateInclinePlane(angle_D, girdle[8], girdle[14], girdle[15]); 
+	planes_up[7] = D7;
+	
+	// создаем плоскости (planes_up) в которых лежат грани D1 - D6
+	for (i = 1; i < 7; i++)
+	{	
+		var plane = new Plane3D();
+		plane.CreateInclinePlane(angle_D, girdle[8 + i + 1], girdle[8 + i - 1], girdle[8 + i]);
+		planes_up[i] = plane;
+	}
+</pre>
+<p>
+На <em>втором</em> этапе найдем плоскости в которых лежат четырехугольные грани <b>E0 - E7</b>.
+Азимуты этих плоскостей совпадают с азимутами граней рундиста под которыми лежат эти 
+плоскости. Наклон всех плоскостей в которых лежат грани <b>E0 - E7</b> задается параметром <code>angle_E</code>.
+Все указанные плоскости проходят через калетту многогранника. Положение калетты в горизонтальной плоскости задается
+параметрами  <code>culet_dx</code> и  <code>culet_dy</code>:
+</p>
+<pre class="prettyprint" id="quine">
+	pavil[16] = new Point3D(culet_dx, culet_dy, -r/2 - hp); // калетта
+
+	// восемь нижних четырехугольных граней павильона E0 - E7
+	var planes_down = [8];
+	var E0 = new Plane3D();
+	E0.CreateInclinePlane(angle_E, girdle[8], girdle[15], pavil[16]);
+	planes_down[0] = E0;
+
+	// создаем плоскости (planes_down) в которых лежат грани E1 - E7
+	for (i = 1; i < 8; i++)
+	{	
+		var plane = new Plane3D();
+		plane.CreateInclinePlane(angle_E, girdle[i+8], girdle[8 + i - 1], pavil[16]);
+		planes_down[i] = plane;
+	}
+</pre>
+
+<p>
+На <em>третьем</em> этапе определим положение вершин павильона <b>0 - 7</b> как точки пересечения трех плоскостей
+с помощью функции <code>IntersectionThreePlanes</code>:
+</p>
+<pre class="prettyprint" id="quine">
+	pavil[0] = planes_up[0].IntersectionThreePlanes(planes_down[0], planes_up[7]);
+	pavil[1] = planes_up[1].IntersectionThreePlanes(planes_down[1], planes_up[0]);
+	pavil[2] = planes_up[2].IntersectionThreePlanes(planes_down[2], planes_up[1]);
+	pavil[3] = planes_up[3].IntersectionThreePlanes(planes_down[3], planes_up[2]);
+	pavil[4] = planes_up[4].IntersectionThreePlanes(planes_down[4], planes_up[3]);
+	pavil[5] = planes_up[5].IntersectionThreePlanes(planes_down[5], planes_up[4]);
+	pavil[6] = planes_up[6].IntersectionThreePlanes(planes_down[6], planes_up[5]);
+	pavil[7] = planes_up[7].IntersectionThreePlanes(planes_down[7], planes_up[6]);	
+</pre>
+<p>
+На <em>четвертом</em> этапе определим положение вершин павильона <b>8 - 15</b> как точки пересечения тех же плоскостей
+что и на <em>третьем</em> этапе, но используемых в функции <code>IntersectionThreePlanes</code> несколько иным способом:
+</p>
+<pre class="prettyprint" id="quine">
+	pavil[8]  = planes_up[0].IntersectionThreePlanes(planes_down[0], planes_down[1]);
+	pavil[9]  = planes_up[1].IntersectionThreePlanes(planes_down[1], planes_down[2]);
+	pavil[10] = planes_up[2].IntersectionThreePlanes(planes_down[2], planes_down[3]);
+	pavil[11] = planes_up[3].IntersectionThreePlanes(planes_down[3], planes_down[4]);
+	pavil[12] = planes_up[4].IntersectionThreePlanes(planes_down[4], planes_down[5]);
+	pavil[13] = planes_up[5].IntersectionThreePlanes(planes_down[5], planes_down[6]);
+	pavil[14] = planes_up[6].IntersectionThreePlanes(planes_down[6], planes_down[7]);
+	pavil[15] = planes_up[7].IntersectionThreePlanes(planes_down[7], planes_down[0]);
+</pre>
+<p>
+Если при помощи параметров <code>culet_dx</code> и <code>culet_dy</code> задать смещение калетты, 
+то <em>азимуты</em> граней павильона не <em>изменятся</em>.
+</p>
+
+<h3 align = "center">&emsp;&emsp;
+<a href="Chapter_05.html"> <span class=brown>Глава 5 </span></a>  <span class=brown>&ensp;◄</span>
+&emsp;&emsp;&emsp;
+<a href="../index.html"> <span class=brown> Содержание  </span></a>
+&emsp;&emsp;&emsp;
+ <span class=brown>► &ensp;</span><a href="Chapter_07.html"> <span class=brown> Глава 7  </span></a>
+</h3>
+
+</body>
+</html>
